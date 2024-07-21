@@ -14,8 +14,10 @@ import socket from "../../utils/socket";
 import { RootState } from "../store/store";
 import { Messages,Allchats,companyContext,Notification } from "./constants";
 import { convertToDate } from "../helperFunctions";
-import MeettingHome from "../components/metting/homeForMetting";
-import VideoCall from "../components/metting/sampleVideoCallUi";
+// import MeettingHome from "../components/metting/homeForMetting";
+// import VideoCall from "../components/metting/sampleVideoCallUi";
+import GroupCall from "../components/metting/GroupCall";
+
 
 
 const CompanyRoute: React.FC = () => {
@@ -157,8 +159,8 @@ return()=>{
                 <Chat role="companies" />
             }
           />
-         <Route path="/meeting" element={<MeettingHome role="companies"/>}/>
-         <Route path="/newMeeting/:roomId" element={<VideoCall role="companies"/>} />
+         <Route path="/meeting" element={<GroupCall role="companies" />}/>
+         {/* <Route path="/newMeeting/:roomId" element={<JitsiMain role="companies"/>} /> */}
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>

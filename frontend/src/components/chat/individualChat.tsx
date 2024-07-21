@@ -6,6 +6,10 @@ import { convertToDate,convertToLocalTime } from "../../helperFunctions"
 import { devcontext,companyContext } from "../../Routes/constants"
 import { toast } from "react-toastify"
 import AxiosInstance from "../../../utils/axios"
+import {Send} from '@mui/icons-material'
+import uploadImageToCloudinary from "../../../utils/cloudinary"
+import {faSpinner } from "@fortawesome/free-solid-svg-icons";
+
 
 interface Props{
     senderId:string,
@@ -22,11 +26,23 @@ interface Props{
 
 const IndividualChats:React.FC<Props> = ({senderId,receiverId,senderModel,receiverModel,profileImg,name,role,closeChat})=>{
   
-   const [content,setContent] = useState('')
+   const [Content,setContent] = useState('')
    const context = useContext(role==='companies'?companyContext:devcontext)
   const {messages,setMessages,setAllchats} = context
- 
- 
+  const [showOptions,setOptions] = useState(false)
+  const fileOptions =['image','video']
+  const [fileType, setFileType] = useState('');
+  const fileInputRef = useRef(null);
+  const [file,setFile] = useState<File|null|undefined>(null)
+  const [selectedUrl,setSelectedUrl] = useState<string>('')
+const [loader,setLoader] = useState(false)
+
+
+ const handleFileOption = (type:string)=>{
+  setOptions(false)
+setFileType(type)
+fileInputRef?.current.click()
+ }
    const chatContainerRef = useRef<HTMLUListElement>(null); 
 useEffect(() => {
     if (chatContainerRef.current) {
@@ -44,10 +60,11 @@ useEffect(() => {
   setMessages(res.data.data)
  })
   },[senderId,receiverId])
+
   const sendMessOnEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       console.log('Enter key pressed');
-      if(content.trim().length>0){
+      if(Content.trim().length>0){
         event.preventDefault()
         sendMessage(event)
       } else{
@@ -56,11 +73,12 @@ useEffect(() => {
     }
   };
 
-const sendMessage = (e:React.MouseEvent<HTMLButtonElement>|React.KeyboardEvent<HTMLInputElement>)=>{
+const sendMessage = (e:React.MouseEvent<HTMLButtonElement>|React.KeyboardEvent<HTMLInputElement>,type='message',content=Content)=>{
    e.preventDefault()
    if(content.trim().length>0){
      socket.emit("stopTyping",senderId,receiverId)
-socket.emit('message', { senderId, receiverId, senderModel, receiverModel, content },(response) => {
+     console.log('type = ',type)
+socket.emit('message', { senderId, receiverId, senderModel, receiverModel, content,type },(response) => {
     setMessages((prevMessages) => {
     const index = prevMessages.findIndex((item)=>convertToDate(item.date)===convertToDate(response.createdAt))
     if(index!==-1){
@@ -112,7 +130,6 @@ socket.emit('message', { senderId, receiverId, senderModel, receiverModel, conte
 
 
 const typing =(e:React.ChangeEvent<HTMLInputElement>)=>{
-  console.log('typingStarted ')
  socket.emit("typing",senderId,receiverId)
  setContent(e.target.value)
 }
@@ -125,15 +142,44 @@ useEffect(()=>{
    return ()=>{
     clearTimeout(handler)
    }
-},[content])
+},[Content])
 
 const cancelTyping =()=>{
-  console.log('typingStopped')
  socket.emit("stopTyping",senderId,receiverId)
 }
 
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
+  console.log('handle file Change')
+        const file:File|undefined = e.target.files?.[0];
+          setFile(file)
+            if(file){
+          const imageUrl = URL.createObjectURL(file)
+          setSelectedUrl(imageUrl)
+          console.log('url = ',imageUrl)
+        }
+      }
+      const closeMediaAccess = ()=>{
+        setSelectedUrl('')
+        setFileType('')
+      }
+const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
+  e.preventDefault()
+  if(file){
+    setLoader(true)
+    uploadImageToCloudinary(file)
+    .then((imageUrl)=>{
+    console.log('imageUrl = ',imageUrl)  
+    sendMessage(e,'image',imageUrl)
+    }).finally(()=>{
+      setLoader(false)
+    closeMediaAccess()
+    })
+    
+
+  }
+}
     return(
-                <div className="w-full h-screen bg-black relative overflow-hidden">
+      <div className="w-full h-screen bg-black relative overflow-hidden">
       <div className="flex bg-black right-0 justify-between items-center border-b">
         <div className="flex items-center border-gray-300 pl-3 py-3">
           <img
@@ -168,8 +214,9 @@ const cancelTyping =()=>{
             </div>
             {item.chats.length>0&&item.chats.map((item)=>(
             <div key={item._id} className={`w-full flex ${senderId===item.senderId?'justify-end':'justify-start'}`}>
-              <div className="bg-violet rounded px-5 py-2 my-2 text-white relative max-w-[300px]">
-                <span className="block ">{item.content}</span>
+              <div className={`bg-violet rounded  ${item.type==='message'&&('px-5 py-2 my-2')} text-white relative max-w-[300px]`}>
+                {item.type==='image'?<img className="h-[200px] w-[350px]" object-cover src={item.content} />:item.type==='video'?<video className="h-[250px] w-[300px]" controls src={item.content} />:<span className="block ">{item.content}</span>}
+                
                 <span className={`block text-[10px] ${senderId===item.senderId?'text-right':'text-left'}`}>{convertToLocalTime(item.createdAt)}</span>
               </div>
             </div>
@@ -187,7 +234,42 @@ const cancelTyping =()=>{
         </ul>
         
       </div>
-
+         {showOptions===true&&fileOptions.length>0&&(
+          <div className="bg-gray-700 text-white flex flex-col z-10 absolute  left-8 bottom-12 rounded-[4px]" >
+            {fileOptions.map((item,index)=>(
+            <h2 className="hover:bg-white px-2 py-1 hover:text-gray-700" onClick={()=>handleFileOption(fileOptions[index])}>{item}</h2>
+            ))}
+          </div>
+        )}
+        <input
+                type="file"
+                hidden
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept={fileType === 'video' ? 'video/*' : 'image/*'}
+                onChange={handleFileChange}
+                
+            />
+            {selectedUrl&&(
+               <div className="absolute bottom-14 bg-gray-700 h-[250px] w-[350px] z-20">
+                <div className=" absolute right-2 top-2 ">
+                 <FontAwesomeIcon className="text-white bg-black p-2 rounded-full h-6 " icon={faCircleXmark} onClick={closeMediaAccess} />
+                </div>
+            {fileType==='image'?<img className="h-[200px] w-full" src={selectedUrl}  alt="" />:fileType==='video'?<video className="h-[200px] w-full" src={selectedUrl} controls />:<></>}
+            <div className="flex justify-end mr-3 py-2">
+              <button className="bg-violet text-white px-5 py-1" onClick={uploadImage}>
+                confirm
+              </button>
+            </div>
+            {loader===true&&(
+ <div className='absolute justify-center items-center flex  z-30  bg-black bg-opacity-45'>
+        <FontAwesomeIcon className='text-white animate-spin h-12' icon={faSpinner} />
+      </div>
+            )}
+            
+            </div>
+            )}
+           
       <div className="absolute overflow-hidden bottom-0 w-full py-3 bg-black px-3 flex items-center justify-between border-t border-gray-300">
         <button className="outline-none focus:outline-none">
           <svg
@@ -205,7 +287,7 @@ const cancelTyping =()=>{
             />
           </svg>
         </button>
-        <button className="outline-none focus:outline-none ml-1">
+        <button className=" outline-none focus:outline-none ml-1" onClick={()=>setOptions(!showOptions)}>
           <svg
             className="text-white h-6 w-6"
             xmlns="http://www.w3.org/2000/svg"
@@ -221,12 +303,13 @@ const cancelTyping =()=>{
             />
           </svg>
         </button>
+       
 
         <input
           placeholder="Type a message"
           className="py-2 mx-3 pl-5 block w-full rounded-full bg-violet outline-none placeholder:text-white focus:bg-violet focus:text-white"
           type="text"
-          value={content}
+          value={Content}
           name="message"
           required
           onChange={typing}

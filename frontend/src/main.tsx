@@ -7,12 +7,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import App from './router.tsx';
 import { store } from './store/store.ts';
-// import GroupVideo from './components/metting/videoChat.tsx';
-// import VideoCall from './components/metting/sampleVideoCallUi.tsx';
-// import MakePayment from './components/payment/stripe.tsx';
-// import SampleBlurPage from './SampleComponent.tsx';
-// import TextEditor from './components/metting/textEditor.tsx';
-// import CodeEditor from './components/metting/CodeEditor.tsx';
+// import JitsiMain from './components/metting/jitsiMain.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

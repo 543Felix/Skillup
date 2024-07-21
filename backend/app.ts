@@ -11,6 +11,8 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
 
+
+
 // Socket
 import { createServer } from 'http';
 import initializeSocket from './Socketio/socketInitial'
@@ -48,6 +50,7 @@ app.use('/admin',adminRoute)
 app.use('/job',jobRoute)
 app.use('/chat',chatRoute)
 app.use('/notifications',notificationRoute) 
+
 
 initializeSocket(httpServer)
 

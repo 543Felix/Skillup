@@ -15,6 +15,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const express_session_1 = __importDefault(require("express-session"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
+const generateTokenForJaas_1 = __importDefault(require("./helper/generateTokenForJaas"));
 // Socket
 const http_1 = require("http");
 const socketInitial_1 = __importDefault(require("./Socketio/socketInitial"));
@@ -44,6 +45,7 @@ app.use('/admin', adminRoute_1.default);
 app.use('/job', jobRoutes_1.default);
 app.use('/chat', chatRoute_1.default);
 app.use('/notifications', notificationRoute_1.default);
+app.get('/generateToken', generateTokenForJaas_1.default);
 (0, socketInitial_1.default)(httpServer);
 httpServer.listen(port, () => {
     console.log(`server is running on port http://localhost:${port}/`);

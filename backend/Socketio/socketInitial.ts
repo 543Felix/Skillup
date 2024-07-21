@@ -32,21 +32,23 @@ const initializeSocket = (httpServer:HTTPServer) => {
       socketUsers.set(userId,socket.id)
       
     })
-     socket.on('message',async(data,callback)=>{
+      socket.on('message',async(data,callback)=>{
       try {
-         const {senderId,receiverId,senderModel,receiverModel,content} = data
+         const {senderId,receiverId,senderModel,receiverModel,content,type} = data
+         console.log('type on backend = ',type)
       new Chat({
         senderId,
         receiverId,
         senderModel,
         receiverModel,
-        content
+        content,
+        type
       }).save()
     .then((data)=>{
       const receiver = socketUsers.get(receiverId)
-      const {_id,content,createdAt,isViewed} = data
-      callback({senderId,receiverId,_id,content,createdAt,isViewed});
-      socket.to(receiver).emit('newMessage',{senderId,receiverId,_id,content,createdAt,isViewed})
+      const {_id,content,createdAt,isViewed,type} = data
+      callback({senderId,receiverId,_id,content,createdAt,isViewed,type});
+      socket.to(receiver).emit('newMessage',{senderId,receiverId,_id,content,createdAt,isViewed,type})
     })    
       } catch (error) {
         console.log('error')
@@ -86,77 +88,9 @@ const initializeSocket = (httpServer:HTTPServer) => {
     socket.to(receiversocketId).emit("stopTyping",senderId)
   })
 
-   socket.on("new-meetting",async(data,callback)=>{
-    console.log('new-meetting',data.roomId,data.userId)
-    const {roomId,userId,name} = data
-    if(!meetings[roomId]){
-    meetings[roomId] = {hostId:userId,participants:[{name:name,id:userId}]}
-    
-    socket.join(roomId)
-    // callback({ success: true, roomId, userId });
-    // socket.broadcast.to(roomId).emit('newUserConnected',{message:`${name} joined the metting`})
-    callback('success')
-    }
-   })
-
-//  socket.on("ice-candidate",async(data)=>{
-//   const {roomId,candidate} = data
-//   socket.broadcast.to(roomId).emit(candidate)
-//  })
- 
-// socket.on("exitFromRoom",(data,callback)=>{
-//   console.log('listening to Exiting from room ')
-//   const {roomId,id} = data
-//   let name
-//   const filteredArr:participantDetails[] = meetings[roomId].participants.filter((user)=>{
-//     if(user.id===id){
-//       name = user.name
-//     }
-//    return user.id!==id
-// })
-//   console.log('Rest participants = ',filteredArr)
-//    meetings[roomId].participants=filteredArr
-//    console.log('meetings participants= ',meetings[roomId].participants)
-//    socket.broadcast.to(roomId).emit('exitedUser',name)
-//    callback('success')   
-// })   
-
-socket.on('endCall',(data)=>{
-  const {roomId,name} = data
-  socket.leave(roomId)
-  socket.broadcast.to(roomId).emit('leftCall',name)
-  console.log('meeting in roomId is ended = ')
-})
-
-   socket.on("join-room",async(data,callback)=>{
-    const {roomId,userId,name} = data
-    if(!meetings[roomId]){
-       callback('Invalid Room Id')
-    }else{
-      const userExists = meetings[roomId].participants.filter((item)=>item.name===name&&item.id===userId)
-      if(userExists.length===0){
-      meetings[roomId].participants.push({name:name,id:userId})
-      socket.join(roomId)
-      socket.broadcast.to(roomId).emit('newUserConnected',{message:`${name} joined the metting`})
-      callback('success')
-      }
-    }
-   })
-
-   socket.on('offer',async(data)=>{
-    const {roomId,offer} = data
-    socket.broadcast.to(roomId).emit('offer',offer)
-   })
-
-   socket.on("answer",async(data)=>{
-    console.log('answer ')
-    const {roomId,answer} = data
-    console.log('roomId = ',roomId)
-    socket.broadcast.to(roomId).emit('answer',answer)
-   })
+  
 
 
-   console.log('connectedUsers = ',socketUsers)
     socket.on('disconnect',()=>{
 
     });  

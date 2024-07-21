@@ -56,6 +56,7 @@ const getAllChats = (req: Request, res: Response) => {
             id: { $first: "$lookupDocument._id" },
             lastMessage: { $first: "$content" },
             createdAt: { $first: "$createdAt" },
+            type:{ $first: "$type" }
           },
         },
         {
@@ -65,6 +66,7 @@ const getAllChats = (req: Request, res: Response) => {
             name: 1,
             image: 1,
             lastMessage: 1,
+            type:1,
             createdAt: 1,
           },
         },
@@ -95,6 +97,7 @@ const getAllChats = (req: Request, res: Response) => {
             id: { $first: "$lookupDocument._id" },
             lastMessage: { $first: "$content" },
             createdAt: { $first: "$createdAt" },
+            type:{ $first: "$type" }
           },
         },
         {
@@ -104,6 +107,7 @@ const getAllChats = (req: Request, res: Response) => {
             name: 1,
             image: 1,
             lastMessage: 1,
+            type:1,
             createdAt: 1,
           },
         },
@@ -158,6 +162,7 @@ const getIndividualMessages = (req: Request, res: Response) => {
               content: "$content",
               status: "$status",
               createdAt: "$createdAt",
+              type:"$type",
               isViewed: "$isViewed",
             },
           },
@@ -181,7 +186,7 @@ const getIndividualMessages = (req: Request, res: Response) => {
 
 const sendMessage = (req: Request, res: Response) => {
   try {
-    const { senderId, receiverId, senderModel, receiverModel, content } =
+    const { senderId, receiverId, senderModel, receiverModel, content,type } =
       req.body;
     new Chat({
       senderId,
@@ -189,6 +194,7 @@ const sendMessage = (req: Request, res: Response) => {
       senderModel,
       receiverModel,
       content,
+      type
     })
       .save()
       .then(() => {

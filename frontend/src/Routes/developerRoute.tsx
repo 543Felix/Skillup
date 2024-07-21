@@ -11,8 +11,10 @@ import PageNotFound from "../pages/404";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { convertToDate } from "../helperFunctions";
-import MeettingHome from "../components/metting/homeForMetting";
-import VideoCall from "../components/metting/sampleVideoCallUi";
+// import MeettingHome from "../components/metting/homeForMetting";
+// import VideoCall from "../components/metting/sampleVideoCallUi";
+import GroupCall from "../components/metting/GroupCall";
+
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -177,8 +179,8 @@ return()=>{
             <Route path="/pricingPage" element={<MakePayment/>}/>
               <Route path="/payment-success" element={<Paymentsucess/>}/>
               <Route path="/payment-error" element={<Paymenterror/>}/>
-         <Route path="/meeting" element={<MeettingHome role="dev"/>}/>
-         <Route path="/newMeeting/:roomId" element={<VideoCall role="dev" />} />
+         <Route path="/meeting" element={<GroupCall role="dev" />}/>
+         {/* <Route path="/newMeeting/:roomId" element={<JitsiMain role="dev" />} /> */}
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </div>
