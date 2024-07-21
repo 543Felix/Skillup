@@ -107,7 +107,7 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
         <span className="block ml-2 text-sm">{convertToLocalTime(item.createdAt)}</span>
       </div>
 <span className={`block ml-2 text-sm ${typerId.length > 0 && typerId.includes(item.id) ? 'text-green-700' : 'text-gray-400'}`}>
-  {typerId.length > 0 && typerId.includes(item.id) ? 'typing...' : item.lastMessage}
+  {typerId.length > 0 && typerId.includes(item.id) ? 'typing...' :item.type==='message'?item.lastMessage:item.type}
 </span>
     </div>
   </a>

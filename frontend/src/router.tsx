@@ -7,7 +7,7 @@ import VerifyOtp from "./pages/verifyOtp"
 import CompanyRegistration from "./pages/company/registration"
 import { Homepage } from "./pages/homePage"
 import AdminHome from "./admin/adminHome"
-import ProtectedRoute from "./protectedRoute"
+import LoggedIn from "./middilware/isLoggedIn"
 
 import PageNotFound from "./pages/404"
 
@@ -26,7 +26,7 @@ const App:React.FC = ()=>{
       <Route  path="/dev/login"  element={<Login data={'dev'}/>}/>
        <Route path="/dev/register" element={<Register />}/>
        <Route path="/dev/register/verifyOtp" element={<VerifyOtp data={'dev'}/>}/>
-       <Route path="/dev/*"  element={<ProtectedRoute role={'dev'}/>}>
+       <Route path="/dev/*"  element={<LoggedIn role={'dev'}/>}>
          <Route path="*" element={<DeveloperRoute/>} />
       </Route>
       
@@ -36,7 +36,7 @@ const App:React.FC = ()=>{
        <Route path='/company/register' element={<CompanyRegistration/>}/>
        <Route path='/company/register/verifyOtp' element={<VerifyOtp data={'company'}/>}/>
        <Route  path="/company/login"  element={<Login data={'company'}/>}/>
-       <Route path="/company/*" element={<ProtectedRoute role={'company'}/>}>
+       <Route path="/company/*" element={<LoggedIn role={'company'}/>}>
         <Route path="*" element={<CompanyRoute/>} />
        </Route>
 

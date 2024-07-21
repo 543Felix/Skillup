@@ -6,11 +6,13 @@ dotenv.config()
  let connectionString = process.env.Mongoosse_Conection_String as string
 let accessTokenSecretKey = process.env.accessToken_Secret_Key as string
 let refreshTokenSecretKey = process.env.refreshToken_Secret_Key as string
+let webHookSecret = process.env.STRIPE_WEBHOOK_SECRET as string 
 
  export {
     senderMail,
     senderMailPassword,
     connectionString,
     accessTokenSecretKey,
-    refreshTokenSecretKey
+    refreshTokenSecretKey,
+    webHookSecret
 }

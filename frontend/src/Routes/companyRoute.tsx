@@ -9,7 +9,7 @@ const Quiz = lazy(() => import("../components/job/QuizPage"));
 import Loader from "../pages/loader";
 import Chat from "../components/chat/allChats";
 import AxiosInstance from "../../utils/axios";
-import { useSelector } from "react-redux";
+import { useSelector,useDispatch } from "react-redux";
 import socket from "../../utils/socket";
 import { RootState } from "../store/store";
 import { Messages,Allchats,companyContext,Notification } from "./constants";
@@ -17,6 +17,8 @@ import { convertToDate } from "../helperFunctions";
 import MeettingHome from "../components/metting/homeForMetting";
 import VideoCall from "../components/metting/sampleVideoCallUi";
 
+import { useNavigate } from "react-router-dom";
+import { companyLogOut } from "../store/slice/companySlice";
 
 const CompanyRoute: React.FC = () => {
 
@@ -27,6 +29,27 @@ const CompanyRoute: React.FC = () => {
   const userId = useSelector((state: RootState) => {
     return state.companyRegisterData._id;
   });
+
+   const dispatch = useDispatch()
+  const navigate = useNavigate()
+  useEffect(()=>{
+AxiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const requestUrl = error.response.config.url;
+      if (requestUrl && requestUrl.startsWith('/company/')) {
+     dispatch(companyLogOut())
+     navigate('/company/login')
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+  },[])
+
   useEffect(() => {
     socket.connect();
     socket.emit("register", userId);

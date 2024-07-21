@@ -38,6 +38,8 @@ const corsOptions = {
     crossOriginOpenerPolicy: 'same-origin',
 };
 app.use((0, cors_1.default)(corsOptions));
+//   const webHookSecret = import.meta
+//   app.post()
 app.use('/dev', developerRoutes_1.default);
 app.use('/company', companyRoutes_1.default);
 app.use('/admin', adminRoute_1.default);

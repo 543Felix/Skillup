@@ -164,6 +164,7 @@ const getIndividualMessages = (req, res) => {
                             content: "$content",
                             status: "$status",
                             createdAt: "$createdAt",
+                            type: "$type",
                             isViewed: "$isViewed",
                         },
                     },
@@ -187,13 +188,14 @@ const getIndividualMessages = (req, res) => {
 };
 const sendMessage = (req, res) => {
     try {
-        const { senderId, receiverId, senderModel, receiverModel, content } = req.body;
+        const { senderId, receiverId, senderModel, receiverModel, content, type } = req.body;
         new chatSchema_1.default({
             senderId,
             receiverId,
             senderModel,
             receiverModel,
             content,
+            type
         })
             .save()
             .then(() => {

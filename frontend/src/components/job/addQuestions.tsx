@@ -5,7 +5,6 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 // import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import AxiosInstance from "../../../utils/axios";
 
-
 export interface QuestionsData {
   question: string;
   options: string[];
@@ -34,6 +33,7 @@ const AddQuestions:React.FC<MyComponentProps> = ({jobId,Quiz}) => {
   const  [passingScoreComponent,setPassingScorecomponnt]  = useState(false)
   const [passingScore,setPassingScore]  = useState(0)
   const containerRef = useRef(null)
+
 
  useEffect(()=>{
   if(Quiz?.questions?.length){
@@ -167,7 +167,7 @@ const AddQuestions:React.FC<MyComponentProps> = ({jobId,Quiz}) => {
   };
   const submitQuestion=()=>{
     if(questions.length===10){
-     AxiosInstance.post(`/job/createQuiz/${jobId}`,{questions,passingScore})
+     AxiosInstance.post(`/company/createQuiz/${jobId}`,{questions,passingScore})
      .then((res)=>{ 
       setQuestions([])
       setPassingScore(0)

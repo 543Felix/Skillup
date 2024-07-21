@@ -34,7 +34,7 @@ const AppliedDevelopers:React.FC<Props> = ({jobId,jobName,hidePage})=>{
       })
    const status =['rejected','selected','shortListed']
     useEffect(()=>{
-      AxiosInstance.get(`/job/appliedDevelopers/${jobId}`)
+      AxiosInstance.get(`/company/appliedDevelopers/${jobId}`)
       .then((res)=>{
         console.log('data = ',res.data.data)
          setData(res.data.data)
@@ -49,7 +49,7 @@ const AppliedDevelopers:React.FC<Props> = ({jobId,jobName,hidePage})=>{
     const updateJobStatus = (status: string, devId: string | undefined) => {
       console.log('devId = ',devId)
   if (devId) {
-    AxiosInstance.patch(`/job/changeProposalStatus/${jobId}`, { status, devId })
+    AxiosInstance.patch(`/company/changeProposalStatus/${jobId}`, { status, devId })
       .then((res) => {
         const copyOfData = [...data];
         const updatedData = copyOfData.map((item) => {

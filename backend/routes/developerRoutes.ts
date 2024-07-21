@@ -1,6 +1,6 @@
 import express from 'express'
 import  {developerController} from '../controllers/developerControllers'
-// import devAuthorization from '../middlewares/developerAuth'
+import devAuthorization from '../middlewares/developerAuth'
 import { jobController } from '../controllers/jobControllers'
 
 
@@ -16,29 +16,38 @@ developerRoute.post('/logOut',developerController.logOut)
 developerRoute.post('/resendOtp',developerController.resendOtp)
 developerRoute.post('/registerWithGoogle',developerController.registerWithGoogle)
 
+
+developerRoute.get('/isBlocked/:id',developerController.isBlocked)
 // Profile
 
-developerRoute.post('/uploadProfile',developerController.uploadProfilePic)
-developerRoute.get('/profile',developerController.profile)
-developerRoute.post('/profileData',developerController.updateProfileData)
-developerRoute.post('/profileRoleandDescription',developerController.updateRoleandDescription)
-developerRoute.post('/updateSkills',developerController.updateSkills)
+developerRoute.post('/uploadProfile',devAuthorization,developerController.uploadProfilePic)
+developerRoute.get('/profile',devAuthorization,developerController.profile)
+developerRoute.post('/profileData',devAuthorization,developerController.updateProfileData)
+developerRoute.post('/profileRoleandDescription',devAuthorization,developerController.updateRoleandDescription)
+developerRoute.post('/updateSkills',devAuthorization,developerController.updateSkills)
 
 //job 
-developerRoute.get('/submittedProposals/:devId',jobController.getSubmitedProposal)
-developerRoute.post('/sendProposal/:jobId',jobController.sendProposal)
+
 
 
 // Subscription
 
-developerRoute.post('/create-checkout-session',developerController.HandleSubscription)
+developerRoute.post('/create-checkout-session',devAuthorization,developerController.HandleSubscription)
 // developerRoute.post('/stripeWebhook',developerController.stripePaymentHandler)
 
 
 
-// developerRoute.get('/dev/:id',jobController.JobsToDisplayDev)
-// developerRoute.get('/getJob/:id',jobController.getJob)
-// developerRoute.get('/getQuiz/:devId/:jobId',jobController.getQuiz)
+ // job
+
+developerRoute.get('/submittedProposals/:devId',jobController.getSubmitedProposal)
+developerRoute.get('/allJobs/:id',devAuthorization,jobController.JobsToDisplayDev)
+developerRoute.patch('/saveJob/:id',devAuthorization,jobController.saveJob)
+developerRoute.patch('/unSaveJob/:id',devAuthorization,jobController.unSaveJob)
+developerRoute.get('/savedJobs/:id',devAuthorization,jobController.SavedJobs)
+developerRoute.get('/quizAttendedDevs/:jobId/:devId',jobController.showQuizAttendedDevelopers)
+developerRoute.get('/appliedJobsCount/:devId',devAuthorization,jobController.getAppliedJobsCount)
+developerRoute.get('/getQuiz/:devId/:jobId',devAuthorization,jobController.getQuiz)
+developerRoute.post('/sendProposal/:jobId',devAuthorization,jobController.sendProposal)
 
 
 export default developerRoute

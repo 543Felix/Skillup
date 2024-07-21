@@ -81,8 +81,7 @@ const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let data = yield companySchema_1.default.findOne({ companyName: name });
         if (data) {
             const { _id, image } = data;
-            const isBlocked = yield companySchema_1.default.findOne({ companyName: name, isBlocked: true });
-            if (isBlocked) {
+            if (data.isBlocked === true) {
                 res.status(401).json({ message: 'user is blocked from the website' });
             }
             else {
@@ -90,6 +89,7 @@ const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 if (passwordMatch) {
                     let { companyName, email } = data;
                     const token = registationHelper_1.registerHelper.generateToken({ companyName, email });
+                    console.log('token = ', token);
                     res.cookie('companyAccessToken', token.accessToken, { httpOnly: true });
                     res.cookie('companyRefreshToken', token.refreshToken, { httpOnly: true });
                     return res.status(200).json({ message: 'login successful', data: { _id, image, name: companyName } });
@@ -115,6 +115,13 @@ const logOut = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         res.status(500).json(error);
+    }
+});
+const isBlocked = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const comapny = yield companySchema_1.default.findOne({ _id: new mongodb_1.ObjectId(id) });
+    if (comapny) {
+        res.status(200).json({ isBlocked: comapny.isBlocked });
     }
 });
 const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -259,5 +266,6 @@ exports.companyController = {
     updateAbout,
     uploadCertificates,
     updateSpecialties,
-    resendOtp
+    resendOtp,
+    isBlocked
 };

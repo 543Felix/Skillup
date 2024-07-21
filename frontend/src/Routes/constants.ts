@@ -13,6 +13,7 @@ export interface Notification {
   senderId: string;
   receiverId: string;
   content: string;
+  type:string;
   createdAt: string;
   isViewed:boolean
 }
@@ -27,6 +28,7 @@ export interface Allchats{
   name:string;
   image:string;
   lastMessage:string;
+  type:string;
   createdAt:string
 }
 

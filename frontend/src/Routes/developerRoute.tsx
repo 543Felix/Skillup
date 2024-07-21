@@ -1,14 +1,13 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import DevHeader from "../components/headerandFooter/devheader";
-// import Footer from "../juniorDevloper/footter";
 import DeveloperHome from "../pages/developer/developerHome";
 import Loader from "../pages/loader";
 import Chat from "../components/chat/allChats";
 import socket from "../../utils/socket";
 import AxiosInstance from "../../utils/axios";
 import PageNotFound from "../pages/404";
-import { useSelector } from "react-redux";
+import { useSelector,useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { convertToDate } from "../helperFunctions";
 import MeettingHome from "../components/metting/homeForMetting";
@@ -22,14 +21,14 @@ const DeveloperProposals = lazy(() => import("../pages/developer/proposals"));
 
 import { Messages,Allchats,devcontext } from "./constants";
 
+// import DevProtectedRoute from "../middilware/isBlocked";
 
 import Paymentsucess from "../components/payment/paymentSucess";
 import Paymenterror from "../components/payment/paymentError";
 import MakePayment from "../components/payment/stripe";
 
-
-
-
+import { useNavigate } from "react-router-dom";
+import { devLogOut } from "../store/slice/developerSlice";
 
 
 
@@ -39,6 +38,25 @@ const DeveloperRoute: React.FC = () => {
   const [messages, setMessages] = useState<Messages[]>([]);
   const [allChats,setAllchats] = useState<Allchats[]>([])
   const userId = useSelector((state: RootState) => state.developerRegisterData._id);
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  useEffect(()=>{
+AxiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const requestUrl = error.response.config.url;
+      if (requestUrl && requestUrl.startsWith('/dev/')) {
+     dispatch(devLogOut())
+     navigate('/dev/login')
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+  },[])
 
   useEffect(() => {
     socket.connect();

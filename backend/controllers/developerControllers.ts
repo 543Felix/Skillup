@@ -6,7 +6,6 @@ import bcrypt from "bcrypt";
 import {registerHelper} from '../helper/registationHelper'
 import  Otp from '../models/otpSchema'
 import Stripe from 'stripe'
-// import Proposal from "../models/proposalSchema";
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -116,11 +115,12 @@ const verifyRegistration= async(req:Request,res:Response):Promise<Response<any, 
 const Login =async (req:Request,res:Response):Promise<Response<any, Record<string, any>>|undefined>=>{
   const {name,password} = req.body
   try {
-    const data:developerData[] = await Developer.find({name:name})
-  if(data.length>0){
-   const passwordMatch = await bcrypt.compare(password,data[0].password)
+    const data:developerData|null = await Developer.findOne({name:name})
+  if(data){
+    if(data.isBlocked ===false){
+       const passwordMatch = await bcrypt.compare(password,data.password)
    if(passwordMatch){
-    let {name,email,_id,image} = data[0]
+    let {name,email,_id,image} = data
     const token = registerHelper.generateToken({name,email}) 
     res.cookie('accessToken',token.accessToken,{httpOnly:true})
     res.cookie('refreshToken',token.refreshToken,{httpOnly:true})
@@ -129,6 +129,11 @@ const Login =async (req:Request,res:Response):Promise<Response<any, Record<strin
    }else{
    return  res.status(401).json({message:'password and userName are incorrect'})
    }
+    }else{
+         return  res.status(403).json({message:'user is blocked'})
+
+    }
+  
   }else{
     return res.status(404).json({message:'user not found'})
   }
@@ -281,11 +286,20 @@ const session = await stripe.checkout.sessions.create({
 }); 
 
  if(session.id){
-  Developer.findOneAndUpdate({_id:new ObjectId(devId as string)},{subscriptionType:subscriptionType.mode,appliedJobsCount:0})
+
+Developer.findOneAndUpdate(
+    { _id: new ObjectId(devId as string) },
+    {
+        $push: { subscriptions: {subscriptionType:subscriptionType.mode} },
+        $set: { appliedJobsCount: 0 }
+    },
+    { new: true } // Option to return the updated document
+)
   .then(()=>{
   res.json({id:session.id})
   })
  }
+  
 
   } catch (error) {
     
@@ -293,6 +307,15 @@ const session = await stripe.checkout.sessions.create({
  
 
 }
+
+const isBlocked = async(req:Request,res:Response)=>{
+  const {id} = req.params
+  const developer = await  Developer.findOne({_id:new ObjectId(id as string)})
+  res.status(200).json({isBlocked:developer?.isBlocked})
+}
+// const webHookForPayment = async(req:Request,res:Response)=>{
+  
+// }
 
 
 
@@ -309,5 +332,5 @@ export const developerController =  {
   resendOtp,
   registerWithGoogle,
   HandleSubscription,
-  
+  isBlocked
 } 

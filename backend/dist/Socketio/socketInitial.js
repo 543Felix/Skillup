@@ -31,19 +31,21 @@ const initializeSocket = (httpServer) => {
         }));
         socket.on('message', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
             try {
-                const { senderId, receiverId, senderModel, receiverModel, content } = data;
+                const { senderId, receiverId, senderModel, receiverModel, content, type } = data;
+                console.log('type on backend = ', type);
                 new chatSchema_1.default({
                     senderId,
                     receiverId,
                     senderModel,
                     receiverModel,
-                    content
+                    content,
+                    type
                 }).save()
                     .then((data) => {
                     const receiver = socketUsers.get(receiverId);
-                    const { _id, content, createdAt, isViewed } = data;
-                    callback({ senderId, receiverId, _id, content, createdAt, isViewed });
-                    socket.to(receiver).emit('newMessage', { senderId, receiverId, _id, content, createdAt, isViewed });
+                    const { _id, content, createdAt, isViewed, type } = data;
+                    callback({ senderId, receiverId, _id, content, createdAt, isViewed, type });
+                    socket.to(receiver).emit('newMessage', { senderId, receiverId, _id, content, createdAt, isViewed, type });
                 });
             }
             catch (error) {
@@ -80,20 +82,13 @@ const initializeSocket = (httpServer) => {
             socket.to(receiversocketId).emit("stopTyping", senderId);
         }));
         socket.on("new-meetting", (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log('new-meetting', data.roomId, data.userId);
             const { roomId, userId, name } = data;
             if (!meetings[roomId]) {
                 meetings[roomId] = { hostId: userId, participants: [{ name: name, id: userId }] };
                 socket.join(roomId);
-                // callback({ success: true, roomId, userId });
-                // socket.broadcast.to(roomId).emit('newUserConnected',{message:`${name} joined the metting`})
                 callback('success');
             }
         }));
-        //  socket.on("ice-candidate",async(data)=>{
-        //   const {roomId,candidate} = data
-        //   socket.broadcast.to(roomId).emit(candidate)
-        //  })
         // socket.on("exitFromRoom",(data,callback)=>{
         //   console.log('listening to Exiting from room ')
         //   const {roomId,id} = data
@@ -110,12 +105,18 @@ const initializeSocket = (httpServer) => {
         //    socket.broadcast.to(roomId).emit('exitedUser',name)
         //    callback('success')   
         // })   
-        socket.on('endCall', (data) => {
+        socket.on('endCall', (data, callback) => {
             const { roomId, name } = data;
-            socket.leave(roomId);
-            socket.broadcast.to(roomId).emit('leftCall', name);
-            console.log('meeting in roomId is ended = ');
+            if (meetings[roomId]) {
+                const newParticipants = meetings[roomId].participants.filter((item) => item.name !== name);
+                meetings[roomId].participants = newParticipants;
+                socket.leave(roomId);
+                socket.broadcast.to(roomId).emit('leftCall', name);
+                callback('success');
+            }
         });
+        // socket.on('reqToJoinRroom',async(data)=>{
+        // })
         socket.on("join-room", (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
             const { roomId, userId, name } = data;
             if (!meetings[roomId]) {
@@ -126,22 +127,39 @@ const initializeSocket = (httpServer) => {
                 if (userExists.length === 0) {
                     meetings[roomId].participants.push({ name: name, id: userId });
                     socket.join(roomId);
-                    socket.broadcast.to(roomId).emit('newUserConnected', { message: `${name} joined the metting` });
+                    const existingParticipants = meetings[roomId].participants.filter((userid) => userid.id !== userId);
+                    console.log('existingParticipants = ', existingParticipants);
+                    existingParticipants.forEach((item) => {
+                        const socketId = socketUsers.get(item.id);
+                        console.log('socketId of each memberes in existingParticipants = ', socketId);
+                        socket.to(socketId).emit('newUserConnected', { message: `${name} joined the metting`, userId, userName: name });
+                    });
                     callback('success');
+                }
+                else {
+                    callback('you Already exists on the metting');
                 }
             }
         }));
         socket.on('offer', (data) => __awaiter(void 0, void 0, void 0, function* () {
-            const { roomId, offer } = data;
-            socket.broadcast.to(roomId).emit('offer', offer);
+            const { sender, to, offer, senderName } = data;
+            const socketId = socketUsers.get(to);
+            console.log('recieverSocketId on offer Listening = ', socketId);
+            console.log('sender on offer Listening = ', senderName);
+            socket.to(socketId).emit('offer', { sender, offer, senderName });
         }));
         socket.on("answer", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log('answer ');
-            const { roomId, answer } = data;
-            console.log('roomId = ', roomId);
-            socket.broadcast.to(roomId).emit('answer', answer);
+            const { to, sender, answer } = data;
+            const socketId = socketUsers.get(to);
+            console.log('socketId of answer sender on answer listening = ', socketId);
+            socket.to(socketId).emit('answer', { sender, answer });
         }));
-        console.log('connectedUsers = ', socketUsers);
+        socket.on('iceCandidate', (data) => __awaiter(void 0, void 0, void 0, function* () {
+            const { iceCandidate, sender, roomId } = data;
+            const otherMembers = meetings[roomId].participants.filter(user => user.id !== sender);
+            console.log('otherMember listening on icecandidate = ', otherMembers);
+            socket.emit('new-iceCandidate', { sender, iceCandidate });
+        }));
         socket.on('disconnect', () => {
         });
     });

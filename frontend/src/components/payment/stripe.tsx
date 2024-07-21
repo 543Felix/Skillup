@@ -6,6 +6,7 @@ import { faCircleXmark } from '@fortawesome/free-regular-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store/store'
+import Loader from '../../pages/loader'
 
 const MakePayment:React.FC =()=>{
     const [subscriptionType,setSubscriptionType] = useState({
@@ -13,6 +14,7 @@ const MakePayment:React.FC =()=>{
         price:0,
 		validity:''
     })
+	const [isLoading,setIsLoading] = useState<boolean>(false)
 	const devId = useSelector((state:RootState)=>{
 		return state.developerRegisterData._id
 	})
@@ -21,23 +23,33 @@ const MakePayment:React.FC =()=>{
 	
      
     const handlePayment = async(mode: string,price :number,validity:string)=>{
+		// setIsLoading(true)
 		setSubscriptionType({
 			mode,
 			price,
 			validity
 		})
         const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PK)
-        AxiosInstance.post(`/dev/create-checkout-session`,{subscriptionType,devId})
+        AxiosInstance.post(`/dev/create-checkout-session`,{subscriptionType:{
+			mode,
+			price,
+			validity
+		},devId})
         .then((response)=>{
+			console.log(response.data)
           if(response.data.id){
             stripe?.redirectToCheckout({sessionId:response.data.id})
           }
         })
+		
     }
 
     return(
-        <>
-         <section className="absolute top-0  right-0 h-screen w-screen backdrop-blur-md z-[9999] py-10 text-gray-400">
+        <>{
+			isLoading===true?
+			<Loader/>
+			:
+ <section className="absolute top-0  right-0 h-screen w-screen backdrop-blur-md z-[9999] py-10 text-gray-400">
 			<div className='absolute right-4 '>
 				<FontAwesomeIcon className='text-white h-8' icon={faCircleXmark} onClick={()=>navigate('/dev/job')} />
 			</div>
@@ -74,7 +86,7 @@ const MakePayment:React.FC =()=>{
 							<span>Tristique enim nec</span>
 						</li> */}
 					</ul>
-					<button type="button" className={`inline-block px-5 py-3 font-semibold tracking-wider text-center rounded ${subscriptionType.mode==='Free'?'bg-white text-violet':'bg-violet text-white'}`} onClick={()=>handlePayment('Free',0,'')} >Get Started</button>
+					{/* <button type="button" className={`inline-block px-5 py-3 font-semibold tracking-wider text-center rounded ${subscriptionType.mode==='Free'?'bg-white text-violet':'bg-violet text-white'}`} disabled >Get Started</button> */}
 				</div>
 			</div>
 			<div className="flex w-full mb-8 sm:px-4 md:w-1/2 lg:w-1/4 lg:mb-0">
@@ -149,6 +161,8 @@ const MakePayment:React.FC =()=>{
 	</div>
 
          </section>
+		}
+        
         </>
        
     )

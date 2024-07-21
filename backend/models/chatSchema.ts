@@ -21,6 +21,11 @@ const chatSchema = new mongoose.Schema({
     required: true,
     enum: ['developers', 'companies']
   },
+  type:{
+    type:String,
+    default:'message',
+    enum:['audio','video','message','image']
+  },
   content: {
     type: String,
     required: true

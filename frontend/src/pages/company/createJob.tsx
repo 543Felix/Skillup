@@ -40,7 +40,7 @@ const Createjob: React.FC<Props> = ({action,jobId,setShowData}) => {
  
   useEffect(()=>{
 if(jobId!==undefined){
-  AxiosInstance.get(`/job/getJob/${jobId}`)
+  AxiosInstance.get(`/company/getJob/${jobId}`)
   .then((res)=>{
      if(res.data.data){
       setJobData(res.data.data)
@@ -92,7 +92,7 @@ const HandleNext = ()=>{
   }
   else{
     const id = jobId??companyId
-    AxiosInstance.post(`/job/${action}/${id}`, jobData).then((res) => {
+    AxiosInstance.post(`/company/${action}/${id}`, jobData).then((res) => {
       if(action ==='createJob'){
         setJobId(res.data.jobId)
       }
@@ -292,7 +292,7 @@ const HandleNext = ()=>{
           <div className="py-10 border-t flex justify-end ">
           {action==='createJob'?<button className="bg-violet text-white px-7 py-1 font-semibold rounded-[5px] mr-7" onClick={HandleNext}>Next</button>
           : 
-          <button className="bg-violet text-white px-7 py-1 font-semibold rounded-[5px] mr-7" onClick={()=>setQuestionsPage(true)}>{jobData.Quiz?'Edit Question':'Add Questions'}</button>
+          <button className="bg-violet text-white px-7 py-1 font-semibold rounded-[5px] mr-7" onClick={HandleNext}>{jobData.Quiz?'Edit Question':'Add Questions'}</button>
           }
         </div>
           </>

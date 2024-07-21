@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import Chat from '../models/chatSchema';
 import Notification from '../models/notificationSchema'
@@ -34,19 +34,21 @@ const initializeSocket = (httpServer:HTTPServer) => {
     })
      socket.on('message',async(data,callback)=>{
       try {
-         const {senderId,receiverId,senderModel,receiverModel,content} = data
+         const {senderId,receiverId,senderModel,receiverModel,content,type} = data
+         console.log('type on backend = ',type)
       new Chat({
         senderId,
         receiverId,
         senderModel,
         receiverModel,
-        content
+        content,
+        type
       }).save()
     .then((data)=>{
       const receiver = socketUsers.get(receiverId)
-      const {_id,content,createdAt,isViewed} = data
-      callback({senderId,receiverId,_id,content,createdAt,isViewed});
-      socket.to(receiver).emit('newMessage',{senderId,receiverId,_id,content,createdAt,isViewed})
+      const {_id,content,createdAt,isViewed,type} = data
+      callback({senderId,receiverId,_id,content,createdAt,isViewed,type});
+      socket.to(receiver).emit('newMessage',{senderId,receiverId,_id,content,createdAt,isViewed,type})
     })    
       } catch (error) {
         console.log('error')
@@ -87,22 +89,16 @@ const initializeSocket = (httpServer:HTTPServer) => {
   })
 
    socket.on("new-meetting",async(data,callback)=>{
-    console.log('new-meetting',data.roomId,data.userId)
     const {roomId,userId,name} = data
     if(!meetings[roomId]){
     meetings[roomId] = {hostId:userId,participants:[{name:name,id:userId}]}
     
     socket.join(roomId)
-    // callback({ success: true, roomId, userId });
-    // socket.broadcast.to(roomId).emit('newUserConnected',{message:`${name} joined the metting`})
     callback('success')
     }
    })
 
-//  socket.on("ice-candidate",async(data)=>{
-//   const {roomId,candidate} = data
-//   socket.broadcast.to(roomId).emit(candidate)
-//  })
+
  
 // socket.on("exitFromRoom",(data,callback)=>{
 //   console.log('listening to Exiting from room ')
@@ -121,13 +117,21 @@ const initializeSocket = (httpServer:HTTPServer) => {
 //    callback('success')   
 // })   
 
-socket.on('endCall',(data)=>{
+socket.on('endCall',(data,callback)=>{
   const {roomId,name} = data
-  socket.leave(roomId)
+  if(meetings[roomId]){
+    
+ const newParticipants =    meetings[roomId].participants.filter((item)=>item.name!==name)
+ meetings[roomId].participants = newParticipants
+ socket.leave(roomId)
   socket.broadcast.to(roomId).emit('leftCall',name)
-  console.log('meeting in roomId is ended = ')
+  callback('success')
+  }
+  
 })
+  // socket.on('reqToJoinRroom',async(data)=>{
 
+  // })
    socket.on("join-room",async(data,callback)=>{
     const {roomId,userId,name} = data
     if(!meetings[roomId]){
@@ -137,26 +141,43 @@ socket.on('endCall',(data)=>{
       if(userExists.length===0){
       meetings[roomId].participants.push({name:name,id:userId})
       socket.join(roomId)
-      socket.broadcast.to(roomId).emit('newUserConnected',{message:`${name} joined the metting`})
+    const existingParticipants =  meetings[roomId].participants.filter((userid)=>userid.id!==userId)
+    console.log('existingParticipants = ',existingParticipants)
+      existingParticipants.forEach((item)=>{
+        const socketId = socketUsers.get(item.id)
+        console.log('socketId of each memberes in existingParticipants = ',socketId)
+        socket.to(socketId).emit('newUserConnected',{message:`${name} joined the metting`,userId,userName:name})
+      })
       callback('success')
+      }else{
+        callback('you Already exists on the metting')
       }
     }
    })
 
    socket.on('offer',async(data)=>{
-    const {roomId,offer} = data
-    socket.broadcast.to(roomId).emit('offer',offer)
+    const {sender,to,offer,senderName} = data
+    const socketId = socketUsers.get(to)
+    console.log('recieverSocketId on offer Listening = ',socketId)
+    console.log('sender on offer Listening = ',senderName)
+    socket.to(socketId).emit('offer',{sender,offer,senderName})
    })
 
    socket.on("answer",async(data)=>{
-    console.log('answer ')
-    const {roomId,answer} = data
-    console.log('roomId = ',roomId)
-    socket.broadcast.to(roomId).emit('answer',answer)
+    const {to,sender,answer} = data
+    const socketId = socketUsers.get(to)
+    console.log('socketId of answer sender on answer listening = ',socketId)
+    socket.to(socketId).emit('answer',{sender,answer})
+   })
+
+   socket.on('iceCandidate',async(data)=>{
+    const {iceCandidate,sender,roomId} = data
+    const otherMembers = meetings[roomId].participants.filter(user=>user.id!==sender)
+    console.log('otherMember listening on icecandidate = ',otherMembers)
+    socket.emit('new-iceCandidate',{sender,iceCandidate})
    })
 
 
-   console.log('connectedUsers = ',socketUsers)
     socket.on('disconnect',()=>{
 
     });  

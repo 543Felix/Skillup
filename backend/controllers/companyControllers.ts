@@ -70,14 +70,14 @@ const Login = async(req:Request,res:Response):Promise<Response<any, Record<strin
     let data:companyData | null = await Company.findOne({companyName:name})
   if(data){
     const {_id,image} = data
-    const isBlocked:companyData | null = await Company.findOne({companyName:name,isBlocked:true})
-    if(isBlocked){
+    if(data.isBlocked===true){
         res.status(401).json({message:'user is blocked from the website'})
     }else{
       let passwordMatch = await bcrypt.compare(password,data.password)
   if(passwordMatch){
     let {companyName,email} = data
     const token = registerHelper.generateToken({companyName,email}) 
+             console.log('token = ',token)
             res.cookie('companyAccessToken',token.accessToken,{httpOnly:true})
             res.cookie('companyRefreshToken',token.refreshToken,{httpOnly:true}) 
             return res.status(200).json({message:'login successful',data:{_id,image,name:companyName}})
@@ -104,6 +104,14 @@ const logOut =async(req:Request,res:Response)=>{
     res.status(500).json(error)
   }
   
+}
+
+const isBlocked = async(req:Request,res:Response)=>{
+  const {id} = req.params
+  const comapny = await  Company.findOne({_id:new ObjectId(id as string)})
+  if(comapny){
+    res.status(200).json({isBlocked:comapny.isBlocked})
+  }
 }
 
 const profile = async(req:Request,res:Response)=>{
@@ -251,5 +259,6 @@ export const companyController={
     updateAbout,
     uploadCertificates,
     updateSpecialties,
-    resendOtp
+    resendOtp,
+    isBlocked
 }

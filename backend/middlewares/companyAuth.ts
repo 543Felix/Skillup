@@ -4,7 +4,7 @@ import { refreshTokenSecretKey, accessTokenSecretKey } from '../envVariables/env
 import { registerHelper } from "../helper/registationHelper";
 import Company from '../models/companySchema'
 
-const isCompanyLoggedIn = async (req: Request, res: Response, next: NextFunction) =>{
+const companyAuthorization = async (req: Request, res: Response, next: NextFunction) =>{
   const token = req.cookies.companyAccessToken;
   if (!token) {
     return res.status(401).send({ message: 'Token not provided' });
@@ -53,16 +53,11 @@ const isCompanyLoggedIn = async (req: Request, res: Response, next: NextFunction
 
 const isCompanyBlocked = async (data: JwtPayload): Promise<boolean> => {
   try {
-    const company = await Company.findOne({ name: data.name, email: data.email, isBlocked: false });
-    console.log('company data = ',company)
-    if(company?.isBlocked===false){
-      return false
-    }else{
-      return true
-    }
+    const company = await Company.findOne({ companyName: data.data.companyName,email:data.data.email});
+    return company!.isBlocked
   } catch (error) {
     return true;
   }
 };
 
-export default isCompanyLoggedIn
+export default companyAuthorization

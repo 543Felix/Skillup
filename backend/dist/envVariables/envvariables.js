@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshTokenSecretKey = exports.accessTokenSecretKey = exports.connectionString = exports.senderMailPassword = exports.senderMail = void 0;
+exports.webHookSecret = exports.refreshTokenSecretKey = exports.accessTokenSecretKey = exports.connectionString = exports.senderMailPassword = exports.senderMail = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 let senderMail = process.env.Sender_Email;
@@ -16,3 +16,5 @@ let accessTokenSecretKey = process.env.accessToken_Secret_Key;
 exports.accessTokenSecretKey = accessTokenSecretKey;
 let refreshTokenSecretKey = process.env.refreshToken_Secret_Key;
 exports.refreshTokenSecretKey = refreshTokenSecretKey;
+let webHookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+exports.webHookSecret = webHookSecret;

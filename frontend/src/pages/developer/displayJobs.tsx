@@ -47,23 +47,23 @@ const Displayjob: React.FC<Props> = ({jobType}) => {
   }
 
   useEffect(() => {
-    const type = jobType==='savedJobs'?'savedJobs':'dev'
-    Axiosinstance.get(`/job/${type}/${id}`)
+    const type = jobType==='savedJobs'?'savedJobs':'allJobs'
+    Axiosinstance.get(`/dev/${type}/${id}`)
       .then((response) => {
         console.log('response of savedJobs = ',response.data)
         if(type==='savedJobs'){
+          console.log('savedJobs  = ',response.data.data.length)
+          if(response.data.data.length===0){
+            setJobs([])
+          }else{
           setJobs(response.data.data);
+          }
         }else{
           setJobs(response.data.data);
           setSavedJobs(response.data.savedJobs)
         }
         
          
-      }).catch((error)=>{
-        if(error.response.status === 404){
-          setJobs([])
-        }
-        console.log(error)
       })
   }, [id,jobType,saveOrUnsave]);
 
@@ -74,7 +74,7 @@ const Displayjob: React.FC<Props> = ({jobType}) => {
 
 const savejob = (e :React.MouseEvent<SVGSVGElement>,jobId:string)=>{
   e.stopPropagation()
-Axiosinstance.patch(`/job/saveJob/${id}`,{jobId})
+Axiosinstance.patch(`/dev/saveJob/${id}`,{jobId})
 .then(()=>{
   setSaveOrUnsave(()=>saveOrUnsave+1)
     setSavedJobs((prevState)=>{
@@ -88,7 +88,7 @@ Axiosinstance.patch(`/job/saveJob/${id}`,{jobId})
 }
 const unSaveJob = (e :React.MouseEvent<SVGSVGElement>,jobId:string)=>{
   e.stopPropagation()
-Axiosinstance.patch(`/job/unSaveJob/${id}`,{jobId})
+Axiosinstance.patch(`/dev/unSaveJob/${id}`,{jobId})
 .then(()=>{
   const updatedSavedJobe = savedJobs.filter((item )=>item!==jobId) 
     setSaveOrUnsave(()=>saveOrUnsave+1)

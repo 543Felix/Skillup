@@ -9,9 +9,7 @@ import { useSelector,useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
 import { updateImage } from '../../store/slice/developerSlice';
 import { updateCompanyImage } from '../../store/slice/companySlice';
-// import { clearDeveloperData } from '../../store/slice/developerSlice';
-// import { clearCompanyData } from '../../store/slice/companySlice';
-// import { useNavigate } from 'react-router-dom';
+
 
 
 interface MyComponentProps {
@@ -25,7 +23,6 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
       }) 
     
     const dispatch = useDispatch()
-    // const navigate = useNavigate()
     const [uploadImageCard, setUploadImageCard] = useState(false);
     const [selectedImage,setSelectedImage] = useState<string|null>(null)
     const imageInputRef = useRef<HTMLInputElement | null>(null)
@@ -59,21 +56,10 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
             setFormData({name,email,phoneNo})
           }  
         }
-        console.log('jkdsfa')
         
       }).catch((error)=>{
         console.log('error = ',error)
-        // if(error.response.status === 401){
-        //   toast.error(error.response.data.message)
-        //   role==='dev'?dispatch(clearDeveloperData()):dispatch()
-         
-        //   navigate('/')
-        // }
-        // else if(error.response.status === 403){
-        //   dispatch(clearDeveloperData())
-        //   navigate('/')
-        //   toast.error(error.response.data.message)
-        // }
+
       })
     },[image,profileData,id,role]);
 

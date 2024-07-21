@@ -16,10 +16,10 @@ import { useParams } from "react-router-dom";
 import socket from '../../../utils/socket';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
+import { useNavigate } from 'react-router-dom'; 
 
-//   function useQuery() {
-//   return new URLSearchParams(useLocation().search);
-// }
+// import Draggable from 'react-draggable'
+
 
 interface Props{
   role:'dev'|'companies'
@@ -28,81 +28,88 @@ interface Props{
 const VideoCall:React.FC<Props> = ({role}) => {
   const {roomId} = useParams()
 
-//     const query = useQuery();
-// const roomId = query.get('roomId');
-// const id = query.get('id');
+
 const {_id,name} = useSelector((state:RootState)=>{
    return role==='dev'?state.developerRegisterData:state.companyRegisterData
 })
 const copyTextRef = useRef(null);
-// const [peerConnections,setPeerConnections] = useState(new Map())
-const localVideoref = useRef<HTMLVideoElement | null>(null);
-const remoteVideoref = useRef<HTMLVideoElement | null>(null);
-const localStreamRef = useRef<MediaStream | null>(null);
-const [disableCopyBttn, setDisableCopyBttn] = useState<boolean>(false);
 const [modalToCpyTxt, setModalToCpyTxt] = useState<boolean>(true);
+const remoteVideoRefs = useRef<Map<string, HTMLVideoElement | null>>(new Map());const localVideoRef = useRef<HTMLVideoElement|null>(null)
 const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
 const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
 const [connectedDevices, setConnectedDevices] = useState<'audio' | 'video' | ''>('');
 const [isCamerEnabled,setIsCameraEnabled] = useState<boolean>(true)
 const [isMicEnabled,setIsMicEnabled] = useState<boolean>(true)
-
-const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
-const peerConnection = new RTCPeerConnection(configuration);
+const [connectedUsers,setConnectedUser] = useState<{name:string,id:string}[]>([])
+const [peerConnections, setPeerConnections] = useState(new Map<string, RTCPeerConnection>());
+// const [localStream,setLocalStream] = useState(new MediaStream())
+const candidateQueue = new Map<string, RTCIceCandidate[]>();
+const navigate = useNavigate()
 
 
 useEffect(() => {
-  socket.on('newUserConnected', (data) => {
-    toast.success(data.message);
+  socket.on('newUserConnected', async(data) => {
+    const {message,userId,userName} = data
+    console.log(message)
+   await createConnectionAndSendOffer(userId,userName)
+     toast.success(message);
   });
+  
+  socket.on('offer',async(data)=>{
+   const {sender,offer,senderName} = data
+   console.log(`offer recieved from ${senderName}`)
+   const peerConnection  = await createPeerConnection(sender,senderName)
+   if(peerConnection){
+peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+   const answer = await peerConnection.createAnswer()
+   
+   socket.emit('answer',{sender:_id,answer:answer,to:sender})
+   }
+   
+  })
+
+  socket.on('answer',async(data)=>{
+    const {sender,answer} = data
+    console.log(`answer receieved from ${sender}`)
+     const peerConnection =  peerConnections.get(sender);
+      if (peerConnection) {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        const queue = candidateQueue.get(sender);
+        if (queue) {
+            while (queue.length > 0) {
+                const candidate = queue.shift();
+                if (candidate) {
+                    await peerConnection.addIceCandidate(candidate);
+                }
+            }
+            candidateQueue.delete(sender);
+        }
+      }
+  })
+
+  socket.on('new-iceCandidate',async(data)=>{
+    const {sender,iceCandidate} = data
+    const peerConnection = peerConnections.get(sender)
+    if(peerConnection){
+        if (peerConnection.remoteDescription && peerConnection.remoteDescription.type) {
+             peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate))
+        }else{
+             const queue = candidateQueue.get(sender);
+            if (queue) {
+                queue.push(new RTCIceCandidate(iceCandidate));
+            }
+        }
+    }
+  })
 
   return () => {
     socket.off("newUserConnected");
+    socket.off('offer')
+    socket.off('answer')
+    socket.off('new-iceCandidate')
   };
 }, []);
 
-useEffect(() => {
-  socket.on('offer', async (offer) => {
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    console.log('offerReceived');
-    socket.emit('answer', { roomId, answer });
-  });
-
-   socket.on("answer", async (answer) => {
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-  });
-  
-  socket.on('leftCall',(name)=>{
-    remoteVideoref.current.srcObject  = null
-    toast.success(`${name} left from the meeting`)
-  })
- 
-//  socket.on()
-
-  return () => {
-    socket.off("offer");
-    socket.off("answer");
-    socket.off("leftCall")
-  };
-}, []); 
-      
-
-useEffect(() => {
-  peerConnection.addEventListener('track', (event) => {
-   
-    const [remoteStream] = event.streams;
-    if (remoteVideoref.current) {
-      remoteVideoref.current.srcObject = remoteStream;
-       
-    }
-    
-  });
- 
-
-
-}, []);
 
 useEffect(() => {
   (async function () {
@@ -111,33 +118,79 @@ useEffect(() => {
     setMicrophones(microphones);
     const cameras = devices.filter((device) => device.kind === 'videoinput');
     setCameras(cameras);
-
-    const localStream = await navigator.mediaDevices.getUserMedia({
+    
+    const localstream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: { deviceId: cameras[0].deviceId }
     });
-
-    localStreamRef.current = localStream;
-
-    if (localVideoref.current) {
-      localVideoref.current.srcObject = localStream;
+  
+    if(localVideoRef.current){
+      localVideoRef.current.srcObject = localstream
     }
-
-    localStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, localStream);
-    });
-
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit('offer', { roomId, offer });                                                                                                                                                                                                                                                                                                                                                                                                                                  
+   
+      
+    
+                                                                                                                                                                                                                                                                                                                                                                                                                                    
   })();
     
   
-}, [_id]);
+}, [_id]); 
 
+ const createPeerConnection = async (userId: string,name:string): Promise<RTCPeerConnection> => {
+    const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
+    const peerConnection = new RTCPeerConnection(configuration);
+   console.log(`new peerConnection created for ${userId} `)
+    peerConnections.set(userId, peerConnection);
+    setPeerConnections(new Map(peerConnections));
+     
+    setConnectedUser((prevState)=>{
+      return[
+        ...prevState,
+      {name:name,id:userId}
+      ]
+     })
+      const localStream =   await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true
+    });
+
+    localStream.getTracks().forEach((track)=>{
+      peerConnection.addTrack(track,localStream)
+    })
+    
+
+    peerConnection.addEventListener('icecandidate',event=>{
+      if(event.candidate){
+        console.log('iceCandidate = ',event.candidate)
+        socket.emit('iceCandidate',{iceCandidate:event.candidate,sender:userId,roomId})
+      }
+    })
+      peerConnection.addEventListener('track', async (event) => {
+      const [remoteStream] = event.streams;
+      console.log('listening to remote media...', remoteStream);
+      console.log('remoteUserId = ', userId);
+      const videoElement = remoteVideoRefs.current.get(userId);
+      if (videoElement) {
+      console.log('videoElement exists listening to remote media...', remoteStream.getTracks());
+      console.log('remoteUserId = ', userId);
+
+        videoElement.srcObject = remoteStream; 
+      }
+    });
    
-      const openCamera=async (cameraId :string)=>{
-const constraints  ={
+    candidateQueue.set(userId, []);
+    return peerConnection;
+  };
+  
+  const createConnectionAndSendOffer = async(userId:string,name:string)=>{
+    const peerConnection = await createPeerConnection(userId,name)
+    const offer = await peerConnection.createOffer()
+    peerConnection.setLocalDescription(offer)
+    socket.emit('offer',{sender:_id,to:userId,offer:offer,senderName:name})
+  }
+
+const openCamera=async (cameraId :string)=>{
+  const constraints  ={
         'audio':true,
         'video':{
             'deviceId':cameraId
@@ -178,35 +231,29 @@ const copyText =()=>{
       .catch((err) => {
         console.error('Failed to copy text: ', err);
       });
-      setDisableCopyBttn(true)
 }
-
-const endCall = ()=>{
-  console.log('end call button is Clicked')
-  peerConnection.close()
-   localStreamRef.current!.getTracks().forEach((track)=>{
-    track.stop()
-   })
-   socket.emit('endCall',({roomId,name}))
-
-}
-
   return (
     <>
       <div className="absolute top-0 left-0 z-40 h-screen w-screen  bg-[rgb(34,33,33)] flex flex-col justify-center items-center">
         <div className="">
-          <div className="bg-black h-[570px] w-[1050px] ">
-            {/* {
-            peerConnections.size>0
-            ? */}
-          <div className="grid h-full grid-cols-2 p-16 gap-8 ">
-             <video ref={remoteVideoref} autoPlay playsInline className="h-full col-start-1 w-full bg-white" />
-              <video ref={localVideoref} autoPlay muted playsInline className="h-full bg-white col-start-2 w-full object-cover  "/>              
-            </div>
-              {/* :
-            <video ref={localVideoref} autoPlay muted playsInline className="h-full bg-white col-start-2 w-full object-cover  "/>
-            } */}
-            
+          <div className="bg-white h-[570px] w-[1050px] "> 
+            {connectedUsers.length>0&&(
+          <div className={`grid h-full ${connectedUsers.length>=3? 'grid-cols-3 grid-rows-2':`grid-cols-${connectedUsers.length}`}  gap-1 items-center justify-center `}>
+           {connectedUsers.map((user) => (
+  <video
+    key={user.id}
+    ref={(el) => {
+      if (el) {
+        remoteVideoRefs.current.set(user.id, el);
+      }
+    }}
+    autoPlay
+    playsInline
+    className="h-full w-full object-cover bg-black"
+  />
+))}
+            </div>)}
+            <video ref={localVideoRef} autoPlay muted playsInline className={` bg-black object-cover ${connectedUsers.length>0?'absolute h-[200px] w-[250px] top-14 left-20 border-2 border-white ':'h-full  w-full '}`}/>
           
   
 
@@ -249,7 +296,7 @@ const endCall = ()=>{
                 icon={isCamerEnabled?faVideoCamera:faVideoSlash}
               />
             </div>
-            <div className="bg-red-700 h-12 w-12 flex items-center justify-center rounded-full" onClick={endCall}>
+            <div className="bg-red-700 h-12 w-12 flex items-center justify-center rounded-full">
               <CallEnd className="text-white" style={{ fontSize: "30px" }} />
             </div>
             <div className="bg-black h-12 w-12 flex items-center justify-center rounded-full">
@@ -260,10 +307,8 @@ const endCall = ()=>{
             </div>
           </div>
           <div className='absolute right-32 items-center flex space-x-4'>
-            {/* <div className='h-12 bg-black'> */}
             <Users className='text-white ' style={{fontSize:'30px'}}/>
             <Chat className='text-white ' style={{fontSize:'30px'}} />
-            {/* </div> */}
         </div>
         </div>
         
@@ -279,12 +324,17 @@ const endCall = ()=>{
             <h1 className='text-gray-300 text-xl '>Share this meeting link with others that you want in this meeting</h1>
         </div>
         <div className='relative'>
-        <input type="text"  className={`w-full h-14 ${disableCopyBttn===false?'text-gray-600':'text-gray-400'} text-xl`} ref={copyTextRef} value={roomId} readOnly />
-         <Copy className={`absolute ${disableCopyBttn===false?'text-gray-600':'text-gray-400'} top-[14px] right-4`} onClick={()=>disableCopyBttn===false?copyText():null}     style={{fontSize:'28px'}}/>
+        <input type="text"  className={`w-full h-14 text-gray-600 text-xl`} ref={copyTextRef} value={roomId} readOnly />
+         <Copy className={`absolute 'text-gray-600 top-[14px] right-4`} onClick={()=>copyText()}     style={{fontSize:'28px'}}/>
         </div>
      </div>   
            )}
-      
+      {/* {reqMessage.trim().length>0&&(
+        <div className='bg-gray-700'>
+          <h2 className='text-white'>{reqMessage}</h2>
+          <button className='bg-violet px-5 py-1'>Accept</button>
+        </div>
+      )} */}
 
     </>
   );

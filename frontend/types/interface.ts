@@ -18,7 +18,7 @@ export interface DecodedJwt extends jwtDecode.JwtPayload {
     Quiz?:object,
     createdAt:string,
     companyDetails:Array<T>,
-    status:'open'|'closed'
+    status:'open'|'closed',
    }
 
    export interface DeveloperDetails{

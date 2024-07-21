@@ -24,21 +24,36 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+// Define the Subscription schema
+const subscriptionSchema = new mongoose_1.Schema({
+    subscriptionType: { type: String, enum: ['Pro', 'Premium', 'Free'], default: 'Free' },
+    isExpired: { type: Boolean, default: false },
+}, { timestamps: true });
+// Define the Developer schema
 const DeveloperSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phoneNo: { type: String },
     password: { type: String, required: true },
-    image: { type: String, default: '' },
+    image: { type: String, default: 'https://res.cloudinary.com/dsnq2yagz/image/upload/v1720757628/userIcon-removebg-preview_blkbxz_c_crop_w_330_h_330_dahy2o.png' },
     role: { type: String, default: '' },
     description: { type: String, default: '' },
     skills: { type: [String] },
     savedJobs: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Job' }],
     completedWorks: { type: [String] },
-    subscriptionType: { type: String, enum: ['Free', 'Pro', 'Premium'], default: 'Free' },
+    // subscriptions: { 
+    //     type: [subscriptionSchema], 
+    //     default: () => [{
+    //         subscriptionType: 'free',
+    //         isExpired: false,
+    //         createdAt: new Date(),
+    //         updatedAt: new Date()
+    //     }]
+    // }
     appliedJobsCount: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
 });
+// Create the Developer model
 const Developer = mongoose_1.default.model('Developer', DeveloperSchema);
 exports.default = Developer;

@@ -1,4 +1,4 @@
-import React ,{useState,Dispatch,SetStateAction} from "react";
+import React ,{useEffect,useState,Dispatch,SetStateAction} from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -11,7 +11,7 @@ import { faAngleUp, faBell,faAngleDown } from "@fortawesome/free-solid-svg-icons
 import AxiosInstance from '../../../utils/axios'
 import { useSelector,useDispatch } from "react-redux";
 import { RootState } from "../../store/store";
-import { clearDeveloperData } from "../../store/slice/developerSlice";
+import { devLogOut } from "../../store/slice/developerSlice";
 // import { Notification } from "../../Routes/developerRoute";
 import { convertToLocalTime } from "../../helperFunctions";  
 
@@ -20,6 +20,7 @@ interface Props{
   setNotifications:Dispatch<SetStateAction<Notification[]>>
 }
 
+// import { endPoints } from "../../endPoin";
 
 
 const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications}) => {
@@ -34,7 +35,17 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
     return state.developerRegisterData
   })
     
-
+  useEffect(()=>{
+    AxiosInstance.get(`/dev/isBlocked/${_id}`)
+    .then((res)=>{
+      if(res.data.isBlocked===true){
+       dispatch(devLogOut())
+      }
+      }
+    )
+  },[])
+    
+  
    
   
 
@@ -51,11 +62,11 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
       })
   }
 
-  function logOut(){
+  async function devlogOut(){
+    // const res = await endPoints.devlogOut
     AxiosInstance.post('/dev/logOut',{}).then((res)=>{
       if(res.status === 200){
-        localStorage.removeItem('developerData')
-        dispatch(clearDeveloperData())
+        dispatch(devLogOut())  
         toast.success('Logout sucessfull')
       }
       navigate('/')
@@ -121,7 +132,7 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
           <Link to="/dev/pricingPage" className="block px-4 py-2  hover:bg-white hover:text-black">
             Pricing
           </Link>
-          <Link to="" onClick={logOut} className="block px-4 py-2  hover:bg-white hover:text-black">
+          <Link to="" onClick={devlogOut} className="block px-4 py-2  hover:bg-white hover:text-black">
             Logout
           </Link>
         </div>

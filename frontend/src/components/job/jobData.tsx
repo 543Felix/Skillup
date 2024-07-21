@@ -44,19 +44,17 @@ const JobData: React.FC<Props> = ({ data, showData, setShowData,setParentAnimati
 
   useEffect(()=>{
 if(data.Quiz){
-    AxiosInstance.get(`/job/quizAttendedDevs/${data._id}/${developerId}`)
+    AxiosInstance.get(`/dev/quizAttendedDevs/${data._id}/${developerId}`)
     .then((res)=>{
-      if(res.status === 401){
+      if(res.status === 200){
         setIsApplied(true)
       }
     })
   }else{
- AxiosInstance.get(`/job/appliedDevelopers/${data._id}`)
+ AxiosInstance.get(`/company/appliedDevelopers/${data._id}`)
    .then((res)=>{
-    const filteredArray = res.data.data.filter((item)=>developerId===item.developer._id)
-    if(filteredArray.length>0){
+    
       setIsApplied(true)
-    }
    })
   }
   },[])
@@ -80,11 +78,14 @@ if(data.Quiz){
 
 
   const handleApply = ()=>{
-    AxiosInstance.get(`/job/appliedJobsCount/${developerId}`)
+    AxiosInstance.get(`/dev/appliedJobsCount/${developerId}`)
     .then((res)=>{
       //  if(res.status===200){
      if(res.status===200){
+      const attended = data?.quizAttendedDevs.filter((id)=>id===developerId)
+      if(attended.length===0){
         setShowProposalPage(true)
+      }
      }
       //  }
     }).catch((error)=>{

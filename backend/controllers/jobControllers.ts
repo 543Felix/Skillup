@@ -150,7 +150,7 @@ const SavedJobs = (req:Request,res:Response)=>{
       { $project: { job: "$jobs",_id: 0 } }
     ]).then((response )=>{
       if(response.length===0){
-         return res.status(404).json('There are no saved jobs')
+         return res.status(200).json({data:response})
       }
       const data = response.map((item)=>item.job)
       res.status(200).json({data})
@@ -267,6 +267,7 @@ const sendProposal = (req:Request,res:Response)=>{
                   jobTitle:1
                }
             }])
+           await Developer.findOneAndUpdate({_id:developerId},{$inc:{appliedJobsCount:1}})
                  res.status(200).json({message:'sucessfully submited your Proposal',Data})
             })
          }else{
@@ -278,7 +279,7 @@ const sendProposal = (req:Request,res:Response)=>{
       res.status(500).json({message:'An error occured while submitting your proposal'})
    }
 }
-  
+    
 const createQuiz = async (req:Request,res:Response)=>{
    try {
       const {id} = req.params
@@ -371,24 +372,7 @@ const getAppliedDevelopers = (req:Request,res:Response)=>{
 }
 
 
-// const appliedJobsCount = async(req:Request,res:Response)=>{
-//    const {devId} = req.params
-// const jobAggregation = await Job.aggregate([
-//     {
-//       $match: {
-//         'quiz.quizAttendedDevs': new ObjectId(devId),
-//       },
-//     },
-//     {
-//       $project: {
-//         _id: 1,
-//         jobTitle: 1,
-//         'quiz.quizAttendedDevs': 1,
-//       },
-//     },
-//   ]);
-//   res.status(200).json({jobAggregation})
-// }
+
 
 const changeProposalStatus =(req:Request,res:Response)=>{
    const {jobId} = req.params
@@ -433,15 +417,14 @@ const showQuizAttendedDevelopers = (req:Request,res:Response)=>{
             quizAttendedDevs: { $elemMatch: { $eq: DevID } }
         }).then((data)=>{
          if(data?.quizAttendedDevs.includes(DevID)){
-           res.status(401).json({message:'you have already attended the quiz'})
-         }else{
-            res.status(200).json({message:''})
+           res.status(200).json({message:'you have already attended the quiz'})
          }
          
         })
 }
 
 const getAppliedJobsCount = (req:Request,res:Response)=>{
+   console.log('entered to getAppliedJobsCount on jobController')
    const {devId} = req.params
    Developer.aggregate([{
       $match:{_id: new ObjectId(devId as string)}
@@ -449,15 +432,20 @@ const getAppliedJobsCount = (req:Request,res:Response)=>{
       $project:{
          _id:0,
          appliedJobsCount:1,
-         subscriptionType:1
+         subscriptions:1
       }
    }]).then((data)=>{
-      if(data[0].subscriptionType === 'Free'&&data[0].appliedJobsCount<5){
+      // console.log(data[0].subscriptions)
+      const lastItem:number = data[0].subscriptions.length-1
+      if(data[0].subscriptions[lastItem].subscriptionType === 'Free'&&data[0].appliedJobsCount<5){
+         console.log('free')
          return res.status(200).json({message:'You are elligible to apply '})
       }
-      else if (data[0].subscriptionType === 'Pro'&&data[0].appliedJobsCount<15){
+      else if (data[0].subscriptions[lastItem].subscriptionType === 'Pro'&&data[0].appliedJobsCount<15){
+         console.log('Pro')
        return  res.status(200).json({message:'You are elligible to apply '})
-      }else if (data[0].subscriptionType === 'Premium'){
+      }else if (data[0].subscriptions[lastItem].subscriptionType === 'Premium'){
+         console.log('Premium')
         return res.status(200).json({message:'You are elligible to apply '})
       }else{
        return  res.status(401).json({message:'your subscription plan expired'})

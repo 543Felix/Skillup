@@ -19,7 +19,6 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const registationHelper_1 = require("../helper/registationHelper");
 const otpSchema_1 = __importDefault(require("../models/otpSchema"));
 const stripe_1 = __importDefault(require("stripe"));
-// import Proposal from "../models/proposalSchema";
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const stripe = new stripe_1.default(process.env.stripe_Secret_Key);
@@ -121,18 +120,23 @@ const verifyRegistration = (req, res) => __awaiter(void 0, void 0, void 0, funct
 const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, password } = req.body;
     try {
-        const data = yield developerSchema_1.default.find({ name: name });
-        if (data.length > 0) {
-            const passwordMatch = yield bcrypt_1.default.compare(password, data[0].password);
-            if (passwordMatch) {
-                let { name, email, _id, image } = data[0];
-                const token = registationHelper_1.registerHelper.generateToken({ name, email });
-                res.cookie('accessToken', token.accessToken, { httpOnly: true });
-                res.cookie('refreshToken', token.refreshToken, { httpOnly: true });
-                return res.status(200).json({ message: 'login successful', data: { name, email, _id, image } });
+        const data = yield developerSchema_1.default.findOne({ name: name });
+        if (data) {
+            if (data.isBlocked === false) {
+                const passwordMatch = yield bcrypt_1.default.compare(password, data.password);
+                if (passwordMatch) {
+                    let { name, email, _id, image } = data;
+                    const token = registationHelper_1.registerHelper.generateToken({ name, email });
+                    res.cookie('accessToken', token.accessToken, { httpOnly: true });
+                    res.cookie('refreshToken', token.refreshToken, { httpOnly: true });
+                    return res.status(200).json({ message: 'login successful', data: { name, email, _id, image } });
+                }
+                else {
+                    return res.status(401).json({ message: 'password and userName are incorrect' });
+                }
             }
             else {
-                return res.status(401).json({ message: 'password and userName are incorrect' });
+                return res.status(403).json({ message: 'user is blocked' });
             }
         }
         else {
@@ -275,7 +279,11 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
             cancel_url: 'http://localhost:5173/dev/payment-error',
         });
         if (session.id) {
-            developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(devId) }, { subscriptionType: subscriptionType.mode, appliedJobsCount: 0 })
+            developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(devId) }, {
+                $push: { subscriptions: { subscriptionType: subscriptionType.mode } },
+                $set: { appliedJobsCount: 0 }
+            }, { new: true } // Option to return the updated document
+            )
                 .then(() => {
                 res.json({ id: session.id });
             });
@@ -284,6 +292,13 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
     }
 });
+const isBlocked = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const developer = yield developerSchema_1.default.findOne({ _id: new mongodb_1.ObjectId(id) });
+    res.status(200).json({ isBlocked: developer === null || developer === void 0 ? void 0 : developer.isBlocked });
+});
+// const webHookForPayment = async(req:Request,res:Response)=>{
+// }
 exports.developerController = {
     Registration,
     verifyRegistration,
@@ -297,4 +312,5 @@ exports.developerController = {
     resendOtp,
     registerWithGoogle,
     HandleSubscription,
+    isBlocked
 };
