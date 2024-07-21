@@ -68,6 +68,7 @@ const getAllChats = (req, res) => {
                         id: { $first: "$lookupDocument._id" },
                         lastMessage: { $first: "$content" },
                         createdAt: { $first: "$createdAt" },
+                        type: { $first: "$type" }
                     },
                 },
                 {
@@ -77,6 +78,7 @@ const getAllChats = (req, res) => {
                         name: 1,
                         image: 1,
                         lastMessage: 1,
+                        type: 1,
                         createdAt: 1,
                     },
                 },
@@ -106,6 +108,7 @@ const getAllChats = (req, res) => {
                         id: { $first: "$lookupDocument._id" },
                         lastMessage: { $first: "$content" },
                         createdAt: { $first: "$createdAt" },
+                        type: { $first: "$type" }
                     },
                 },
                 {
@@ -115,6 +118,7 @@ const getAllChats = (req, res) => {
                         name: 1,
                         image: 1,
                         lastMessage: 1,
+                        type: 1,
                         createdAt: 1,
                     },
                 },
@@ -164,6 +168,7 @@ const getIndividualMessages = (req, res) => {
                             content: "$content",
                             status: "$status",
                             createdAt: "$createdAt",
+                            type: "$type",
                             isViewed: "$isViewed",
                         },
                     },
@@ -187,13 +192,14 @@ const getIndividualMessages = (req, res) => {
 };
 const sendMessage = (req, res) => {
     try {
-        const { senderId, receiverId, senderModel, receiverModel, content } = req.body;
+        const { senderId, receiverId, senderModel, receiverModel, content, type } = req.body;
         new chatSchema_1.default({
             senderId,
             receiverId,
             senderModel,
             receiverModel,
             content,
+            type
         })
             .save()
             .then(() => {
