@@ -10,12 +10,9 @@ import Loader from "../pages/loader";
 import Chat from "../components/chat/allChats";
 import AxiosInstance from "../../utils/axios";
 import { useSelector } from "react-redux";
-import socket from "../../utils/socket";
+import socket,{connectSocket} from "../../utils/socket";
 import { RootState } from "../store/store";
 import { Messages,Allchats,companyContext,Notification } from "./constants";
-import { convertToDate } from "../helperFunctions";
-// import MeettingHome from "../components/metting/homeForMetting";
-// import VideoCall from "../components/metting/sampleVideoCallUi";
 import GroupCall from "../components/metting/GroupCall";
 
 
@@ -29,90 +26,35 @@ const CompanyRoute: React.FC = () => {
   const userId = useSelector((state: RootState) => {
     return state.companyRegisterData._id;
   });
+
+
   useEffect(() => {
-    socket.connect();
-    socket.emit("register", userId);
-    return () => {
-      socket.off("register")
-      socket.emit('deRegister',userId)
-      socket.disconnect();
-    };
-  }, [userId]);
-
-  useEffect(()=>{
-   socket.on("newMessage", async (response) => {
-    setMessages((messages)=>{
-      const index = messages.findIndex((item)=>convertToDate(item.date)===convertToDate(response.createdAt))
-      if(index!==-1){
-    return messages.map((message)=>{
-        if(convertToDate(message.date)===convertToDate(response.createdAt)){
-          return{
-            ...message,
-            chats:[...message.chats,response]
-          } 
-        }
-        return message
-      })
-      }else{
-        const newMessage ={
-          date:response.createdAt,
-          chats:[response]
-        }
-        return[
-          ...messages,
-          newMessage
-        ]
-      }
-      
-    })
-   setAllchats((chats)=>{
-    const updatedChats =  chats.map((chat)=>{
-      if(chat.id===response.senderId){
-        return{
-          ...chat,
-          lastMessage:response.content,
-          createdAt:response.createdAt
-        }
-      }      
-        return chat
-    })
+    connectSocket(userId)
    
-    updatedChats.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return updatedChats
-
-   })
-    });
-
-    return()=>{
-      socket.off("newMessage")
-    }
-
-  },[])
-
-  useEffect(()=>{
-  socket.on("notification", async (data) => {
+   
+    
+    socket.on("notification", async (data) => {
       setData(data);
     });
-return()=>{
-  socket.off("notification")
-}
 
-},[])
- useEffect(()=>{
-   function getAllChats(){
-      AxiosInstance.get(`/chat/getAllChats/${userId}`).then((res) => {
-      setAllchats(res.data);
-    });
-    }
-    getAllChats()
- },[userId])
+   
+
+    return () => {
+      // socket.off("register")
+      socket.off("notification")
+      
+      socket.disconnect();
+    };
+  }, []);
+
+ 
+
 
   useEffect(() => {
     AxiosInstance.get(`/notifications/${userId}/developers`).then((res) => {
       setNotifications(res.data);
     });
   }, [data, userId]);
-  console.log('notifications = ',notifications)
   return (
     <>
     <companyContext.Provider value={{ messages, setMessages,allChats,setAllchats }}>

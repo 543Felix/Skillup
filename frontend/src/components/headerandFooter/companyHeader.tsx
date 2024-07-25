@@ -1,6 +1,6 @@
 import React,{useState,useEffect,Dispatch,SetStateAction} from'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUserCircl,faCircleXmark } from '@fortawesome/free-regular-svg-icons'
+import { faCircleXmark } from '@fortawesome/free-regular-svg-icons'
 import { faAngleUp, faBell,faAngleDown } from "@fortawesome/free-solid-svg-icons";
 import { Link,useNavigate } from 'react-router-dom'
 import { RootState } from '../../store/store'
@@ -18,7 +18,7 @@ interface Props{
 }
 
 
-const CompanyHeader:React.FC<Props> = ({notifications,setNotifications})=>{
+const CompanyHeader:React.FC<Props> = ({notifications})=>{
   const [expanded,setExpanded] = useState(false)
 const userId = useSelector((state:RootState)=>{
   return state.companyRegisterData._id
@@ -109,7 +109,6 @@ return(
 
             </div>
           <div className="items-center justify-end space-x-2  hidden lg:flex">
-            {image ? (
           <img
             src={image}
             alt="Profile"
@@ -117,14 +116,7 @@ return(
             onMouseEnter={()=>setShowDropdown(true)}
             onMouseLeave={()=>setShowDropdown(false)}
           />
-        ) : (
-          <FontAwesomeIcon
-            className="self-center px-4 py-3 h-10 w-10 cursor-pointer"
-            icon={faUserCircle}
-           onMouseEnter={()=>setShowDropdown(true)}
-            onMouseLeave={()=>setShowDropdown(false)}
-          />
-        )}
+    
       {/* </Link> */}
       {showDropdown && (
         <div className="absolute right-20 mt-[188px] w-32 bg-black text-white rounded shadow-lg" onMouseEnter={()=>setShowDropdown(true)} onMouseLeave={()=>setShowDropdown(false)}>
@@ -147,9 +139,7 @@ return(
           </div>
           <div className='flex items-center space-x-4  lg:hidden'>
           <Link to={'/company/profile'}>
-              {image?
-              <img src={image} alt="" className="self-center py-3 h-[65px] " /> : <FontAwesomeIcon className="self-center px-4 py-3 h-10 w-10" icon={faUserCircle} />
-            }
+              <img src={image} alt="" className="self-center py-3 h-[65px] " />
             </Link>
           <button className="py-4 ">
             <svg

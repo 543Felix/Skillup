@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserTie } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faUserTie } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
-import Developers from "./components/developers";
-import Companies from "./components/companies";
+// import Developers from "./components/developers";
+// import Companies from "./components/companies";
 import { toast } from "react-toastify";
 import Axiosinstance from "../../utils/axios";
 import { useNavigate } from "react-router-dom";
+import {LogoutOutlined} from '@mui/icons-material'
 
 interface MyComponentProps {
   data?:'dev' | 'company'
@@ -33,25 +34,29 @@ const AdminHome: React.FC<MyComponentProps> = ({data}) => {
 
   return (
     <>
-      <div className="flex p-4 z-0">
-  <div className="bg-black  w-[220px] h-[600px] rounded-lg grid col grid-rows-8">
-    <div className="row-start-1 pt-10 flex justify-center text-white h-[50px]">
+      {/* <div className="overflow-y-hidden p-0 m-0"> */}
+  <div className="bg-black flex flex-col  space-y-16 items-center w-[220px] h-screen py-20 ">
+    <div className="flex flex-col space-y-1 items-center justify-center text-white h-auto">
      <a href="">
-      <img src="../public/developer/logo.png"  className="h-[100px]" alt="" />
+      <img src="../public/developer/logo.png"  className="h-[140px]" alt="" />
      </a>
+     <h1 className="text-3xl font-bold">upSkill</h1>
     </div>
-    <div className="row-start-3 mt-14 h-[350px] grid grid-rows-8 justify-center items-center text-white text-xl">
-      <h1 className="row-start-1">Dashboard</h1>
+    <div className="flex flex-col space-y-5  justify-center items-center text-white text-2xl font-thin">
+      <h1 className="">Dashboard</h1>
       <Link to='/admin/developers'>
-      <h1 className="row-start-2">developers</h1>
+      <h1 className="">Developers</h1>
       </Link>
       <Link to='/admin/companies'>
-      <h1 className="row-start-3">companies</h1>
+      <h1 className="">Companies</h1>
       </Link>
-      <h1 className="row-start-6" onClick={logOut}>Log out</h1>
+    </div>
+    <div className="flex text-white items-center space-x-2 justify-center font-semibold">
+      <h1 className=" text-2xl" onClick={logOut}>Log out</h1>
+      <LogoutOutlined  className="text-white" style={{fontSize:'35px'}} />
     </div>
   </div>
-  <div className="flex flex-col ml-3 w-full ">
+  {/* <div className="flex flex-col ml-3 w-full ">
     <div className="bg-black  grid grid-cols-12 h-16 rounded-lg items-center text-white">
       <input
         className="h-12 ml-7 focus:outline-none rounded-[15px] col-span-5 bg-white text-black"
@@ -66,8 +71,8 @@ const AdminHome: React.FC<MyComponentProps> = ({data}) => {
       
       
     </div>
-  </div>
-</div>
+  </div> */}
+{/* </div> */}
 
     </>
   );

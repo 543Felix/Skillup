@@ -1,12 +1,17 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 // import Axiosinstance from "../../../utils/axios";
 // import { toast } from "react-toastify";
+import {DeveloperData} from '../../../types/interface'
 
 
+interface Props{
+  data:DeveloperData,
+  closeProfile:Dispatch<SetStateAction<boolean>>
+}
 
-const AdminSideDeveloperProfile: React.FC = ({ data, closeProfile,}) => {
+const AdminSideDeveloperProfile: React.FC<Props> = ({ data, closeProfile,}) => {
 
   return (
       <div className=" flex justify-center   py-[10px]">
@@ -77,8 +82,8 @@ const AdminSideDeveloperProfile: React.FC = ({ data, closeProfile,}) => {
               </h1>
             </div>
             <div className="p-4">
-              {data.skills.length > 0 &&
-                data.skills.map((item, index) => (
+              {data.skills!.length > 0 &&
+                data.skills!.map((item, index) => (
                   <button
                     key={index}
                     className="justify-center items-center bg-violet text-white px-3 py-1              mr-3 mb-3 rounded-[15px]"

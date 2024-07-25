@@ -47,7 +47,7 @@ const AddSlot =  ()=>{
   
   
 
-  const addSlot = async(e) => {
+  const addSlot = async(e:React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     const regex = /^(?:(?:0?[1-9]|1[0-2]):[0-5][0-9] ?[aApP][mM](?: ?- ?(?:0?[1-9]|1[0-2]):[0-5][0-9] ?[aApP][mM])?)$/
     if(!regex.test(time.trim())){
@@ -59,7 +59,7 @@ const AddSlot =  ()=>{
     // const isTimeValidate=()=>{
     //  slots.some 
     // }
-    if(slots.some((slot)=>slot.date===selectedDate&&(slot.time.toLowerCase().split('').filter(i=>(i!==' '&&i!=='-')).join('') === time.toLowerCase().split('').filter(i=>(i!==' '&&i!=='-')).join('')||slot.time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==(' '||'-')).join('') === time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==(' '||'-')).join('')))){
+    if(slots.some((slot)=>slot.date===selectedDate&&(slot.time.toLowerCase().split('').filter((i:string)=>(i!==' '&&i!=='-')).join('') === time.toLowerCase().split('').filter(i=>(i!==' '&&i!=='-')).join('')||slot.time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==(' '||'-')).join('') === time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==(' '||'-')).join('')))){
       toast.error('slot already added between te time period')
       return
     }

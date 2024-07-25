@@ -4,15 +4,28 @@ import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
 import Axiosinstance from "../../../utils/axios";
 import AdminCompanyProfile from "./companyProfile";
-
+import {ComapnyData} from '../../../types/interface'
 
 
 
 const Companies: React.FC = () => {
-  const [data, setData] = useState([]);
-  const [compayData,setCompanyData] = useState([])
+  const [data, setData] = useState<ComapnyData[]>([]);
+  const [compayData,setCompanyData] = useState<ComapnyData>({
+     _id:'',
+    name:'',
+    companyType:'',
+    noOfEmployes:'',
+    email:'',
+    phoneNo:'',
+    website:'',
+    overview:'',
+    specialties:[],
+    certificates:[],
+    image:'',
+    isVerified:false,
+  })
   const [showProfile,setShowProfile] = useState(false)
-  const [updatedData,setUpdatedData] = useState([])
+  const [updatedData,setUpdatedData] = useState<ComapnyData[]>([])
   useEffect(() => {
     Axiosinstance.get("http://localhost:3001/admin/companies").then((res) => {
       if (res.status === 200) {
@@ -20,7 +33,7 @@ const Companies: React.FC = () => {
       }
     });
   }, [updatedData]);
- const getCompanyData = (id)=>{
+ const getCompanyData = (id:string)=>{
 
    Axiosinstance.get(`/company/profile?id=${id}`).then((res)=>{
     const data = res.data.data

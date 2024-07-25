@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import Chat from "../models/chatSchema";
 import { ObjectId } from "mongodb";
+import { getOnlineUsers } from "../Socketio/socketInitial";
 
-const getAllChats = (req: Request, res: Response) => {
+const getAllChats = async(req: Request, res: Response) => {
   const { id } = req.params;
   const objectId = new ObjectId(id as string);
+  const onlineUsers =  getOnlineUsers()
   const getChatWithLookups = async () => {
     try {
       const matchStage = {
@@ -123,7 +125,8 @@ const getAllChats = (req: Request, res: Response) => {
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      res.status(200).json(combinedResults);
+      console.log('usersOnline = ',onlineUsers)
+      res.status(200).json({chats:combinedResults,onlineUsers});
     } catch (error) {
       console.error(error);
       res.json({ error });
@@ -132,13 +135,23 @@ const getAllChats = (req: Request, res: Response) => {
   getChatWithLookups();
 };
 
-const getIndividualMessages = (req: Request, res: Response) => {
+const getIndividualMessages = async(req: Request, res: Response) => {
   try {
     const { senderId, receiverId } = req.query;
-    const userIds = [
+    const userIds = [ 
       new ObjectId(senderId as string),
       new ObjectId(receiverId as string),
     ];
+   await Chat.updateMany(
+  {
+    senderId:new ObjectId(receiverId as string),
+    receiverId: new ObjectId(senderId as string) ,
+    isViewed: false,
+  },
+  {
+    $set: { isViewed: true }
+  }
+);
     Chat.aggregate([
       {
         $match: {
@@ -205,8 +218,26 @@ const sendMessage = (req: Request, res: Response) => {
   }
 };
 
+const setMessageViewed =(req: Request, res: Response) => {
+  const {id} = req.query
+   Chat.updateMany({_id:new ObjectId(id as string )},{isViewed:false})
+   .then(()=>{
+     res.status(200)
+   })
+}
+
+const DeleteMessage = (req: Request, res: Response) => {
+  const {id} = req.params
+  Chat.deleteOne({_id:new ObjectId(id as string)})
+  .then(()=>{
+    res.status(200).json({message:'chat Deleted'})
+  })
+}
+
 export const ChatController = {
   getAllChats,
   sendMessage,
   getIndividualMessages,
+  setMessageViewed,
+  DeleteMessage
 };

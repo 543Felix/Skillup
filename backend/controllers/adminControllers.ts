@@ -3,6 +3,7 @@ import Admin from '../models/adminSchema'
 import {adminType} from '../types/interface'
 import Developer from '../models/developerSchema'
 import Company from '../models/companySchema'
+import Job from "../models/jobsSchema"
 import { ObjectId} from "mongodb"
 import { adminSideListingData } from "../types/interface"
 import { registerHelper } from "../helper/registationHelper"
@@ -124,6 +125,14 @@ const logOut =(req:Request,res:Response)=>{
    
   }
 
+
+  const getDetailsOnDashboard = async(req:Request,res:Response)=>{
+    const DeveloperCount = await Developer.find().countDocuments()
+    const CompaniesCount = await Company.find().countDocuments()
+    const jobsCount = await Job.find().countDocuments()
+    res.status(200).json({DeveloperCount,CompaniesCount,jobsCount})
+  }
+
 export const adminController ={
     login,
     showDevelopers,
@@ -134,5 +143,6 @@ export const adminController ={
     unblockCompany,
     logOut,
     verifyCompany,
-    unverifyCompany
+    unverifyCompany,
+    getDetailsOnDashboard
 }

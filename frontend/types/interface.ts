@@ -31,3 +31,35 @@ export interface DecodedJwt extends jwtDecode.JwtPayload {
     description:string,
     skills:string[],
    } 
+
+ export interface DeveloperData{
+    name: string;
+    _id:string;
+    email: string;
+    phoneNo?: string;
+    password: string;
+    image?: string;
+    role?: string;
+    description?: string;
+    skills?: string[];
+    completedWorks?: string[];
+    appliedJobsCount?:number
+    isVerified: boolean;
+    isBlocked: boolean;
+ }
+   export interface ComapnyData{
+    _id:string,
+    name?:string
+    companyName?:string 
+    companyType:string
+    noOfEmployes:string
+    email:string
+    phoneNo:string
+    website:string
+    overview:string
+    specialties:string[]
+    certificates:string[]
+    image:string
+    isVerified:boolean
+    isBlocked?:boolean
+   }

@@ -5,11 +5,26 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Axiosinstance from '../../../utils/axios';
 import AdminSideDeveloperProfile from './adminSideDeveloperProfile';
 
+import {DeveloperData} from '../../../types/interface'
+
 const Developers:React.FC =()=>{
 
-const [data,setData] = useState([])
+const [data,setData] = useState<DeveloperData[]>([])
+const [individualData,setIndividualData] = useState<DeveloperData>({
+     name: '',
+    _id:'',
+    email: '',
+    phoneNo: '',
+    password: '',
+    image: '',
+    role: '',
+    description: '',
+    skills: [],
+    completedWorks: [],
+    isVerified: false,
+    isBlocked: false,
+})
 const [showData,setShowData] = useState(false)
-const [developerId,setDeveloperId] = useState('')
 useEffect(()=>{
     Axiosinstance.get('http://localhost:3001/admin/developers').then((res)=>{
         if(res.status === 200){
@@ -18,7 +33,7 @@ useEffect(()=>{
     })
 },[])
 
-function block(e,id:string){
+function block(e:React.MouseEvent<HTMLButtonElement, MouseEvent>,id:string){
     e.stopPropagation()
     Axiosinstance.patch(`http://localhost:3001/admin/developers/block?id=${id}`).
     then((res)=>{
@@ -30,7 +45,7 @@ function block(e,id:string){
         
     })
 }
-function unBlock(e,id:string){
+function unBlock(e:React.MouseEvent<HTMLButtonElement, MouseEvent>,id:string){
     e.stopPropagation()
     Axiosinstance.patch(`http://localhost:3001/admin/developers/unBlock?id=${id}`).
     then((res)=>{
@@ -43,13 +58,13 @@ function unBlock(e,id:string){
       })
 }
 
-const ShowDeveloperData=(data:string)=>{
+const ShowDeveloperData=(data:DeveloperData)=>{
 setShowData(true)
- setDeveloperId(data)
+setIndividualData(data)
 }
 return(
    showData === true?
-    <AdminSideDeveloperProfile data={developerId} closeProfile={setShowData}/>
+    <AdminSideDeveloperProfile data={individualData} closeProfile={setShowData}/>
     :
     <div className="col-span-12 mt-5">
     <div className="grid gap-2 grid-cols-1 lg:grid-cols-1">

@@ -371,24 +371,6 @@ const getAppliedDevelopers = (req:Request,res:Response)=>{
 }
 
 
-// const appliedJobsCount = async(req:Request,res:Response)=>{
-//    const {devId} = req.params
-// const jobAggregation = await Job.aggregate([
-//     {
-//       $match: {
-//         'quiz.quizAttendedDevs': new ObjectId(devId),
-//       },
-//     },
-//     {
-//       $project: {
-//         _id: 1,
-//         jobTitle: 1,
-//         'quiz.quizAttendedDevs': 1,
-//       },
-//     },
-//   ]);
-//   res.status(200).json({jobAggregation})
-// }
 
 const changeProposalStatus =(req:Request,res:Response)=>{
    const {jobId} = req.params

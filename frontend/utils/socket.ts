@@ -10,4 +10,10 @@ const socket: Socket = io(SOCKET_SERVER_URL, {
   reconnectionDelay: 1000, 
 });
 
+export const connectSocket = (userId: string) => {
+  socket.io.opts.query = { userId };
+  socket.connect();
+};
+
+
 export default socket;

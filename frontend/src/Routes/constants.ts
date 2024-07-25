@@ -8,7 +8,7 @@ export interface Notification {
   image: string;
 }
 
- interface chats {
+export interface chats {
   _id: string;
   senderId: string;
   receiverId: string;

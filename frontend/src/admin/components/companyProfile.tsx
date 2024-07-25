@@ -1,15 +1,21 @@
-import React from "react";
+import React,{Dispatch,SetStateAction} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import Axiosinstance from "../../../utils/axios";
 import { toast } from "react-toastify";
+import {ComapnyData} from '../../../types/interface'
 
-const AdminCompanyProfile: React.FC = ({ data, closeProfile,updateData}) => {
-  console.log('data = ',data.isVerified)
+
+interface Props{
+  data:ComapnyData,
+  closeProfile:Dispatch<SetStateAction<boolean>>
+  updateData:Dispatch<SetStateAction<ComapnyData[]>>
+}
+
+const AdminCompanyProfile: React.FC<Props> = ({ data, closeProfile,updateData}) => {
   const verifyCompany = ()=>{
     Axiosinstance.patch(`/admin/companies/verify?id=${data._id}`).then((res)=>{
       const data = res.data.data
-      console.log('data =',data)
       updateData(data)
       closeProfile(false)
       toast.success(`${data.companyName} mark as verified`)

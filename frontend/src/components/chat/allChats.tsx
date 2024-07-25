@@ -2,11 +2,10 @@ import React,{useContext, useEffect, useState} from "react"
 import IndividualChats from "./individualChat"
 import { useSelector } from "react-redux"
 import { RootState } from "../../store/store"
-// import AxiosInstance from "../../../utils/axios"
+import AxiosInstance from "../../../utils/axios"
 import { devcontext,companyContext } from "../../Routes/constants"
 import { convertToLocalTime } from "../../helperFunctions"
 import socket from "../../../utils/socket"
-
 
 interface Props {
     role:'developers'|'companies'
@@ -15,7 +14,7 @@ interface Props {
 
 const Chat:React.FC<Props> =React.memo(({role})=>{
    const context = useContext(role==='companies'?companyContext:devcontext)
-   const {allChats} = context
+   const {allChats,setAllchats} = context
    const [typerId,setTyperID] =useState<string[]>([])
     const senderId = useSelector((state:RootState)=>{
         return role==='companies'?state.companyRegisterData._id:state.developerRegisterData._id
@@ -23,12 +22,29 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
     const [receiverId,setReceiverId] = useState('')
     const [profileImg,setProfileImg] = useState<string>('')
     const [name,setName] = useState<string>('')
-     const receiverModel = role==='companies'?'developers':'companies'
+    const [usersOnline,setUsersOnline] = useState<string[]>([])
+    const receiverModel = role==='companies'?'developers':'companies'
 
-
-    //startTyping
-    useEffect(()=>{
-    socket.on("typing",async(senderId)=>{
+   useEffect(()=>{
+      socket.on("stopTyping",async(senderId)=>{
+      setTyperID((ids)=>ids.filter((id)=>id!==senderId))
+     })
+     socket.on('onlineUsers',(userId)=>{
+      console.log('listened for new user ccomes online = ',userId)
+      setUsersOnline((prevState)=>{
+        return[
+          ...prevState,
+          userId
+        ]
+      })
+     })
+     socket.on('goesOffline',(userId)=>{
+      console.log('listens to exit messages = ',userId)
+         setUsersOnline((users)=>{
+        return  [...users.filter((id:string)=>id!==userId)]}
+        )
+     })
+      socket.on("typing",async(senderId)=>{
      setTyperID((prevState) => {
         if (!prevState.includes(senderId)) {
           return [...prevState, senderId];
@@ -36,35 +52,42 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
         return prevState;
       });
     })
-     return () => {
 
-      socket.off('typing');
-
-      
-    };
-    },[])
-
-
-    //stopTyping
-    useEffect(()=>{
-     socket.on("stopTyping",async(senderId)=>{
-      setTyperID((ids)=>ids.filter((id)=>id!==senderId))
-     })
-     return()=>{
+   return()=>{
       socket.off("stopTyping")
+      socket.off('typing');
+      socket.off("onlineUsers")
+      socket.off('goesOffline')
      }
-    },[])
 
-    const startChat = (item)=>{
+   },[])
+
+    useEffect(()=>{
+   
+     
+     function getAllChats(){
+      AxiosInstance.get(`/chat/getAllChats/${senderId}`).then((res) => {
+        const {chats,onlineUsers} = res.data
+      setAllchats(chats);
+      if(onlineUsers.length>0){
+         setUsersOnline(()=>{
+        return[
+          ...onlineUsers
+        ]
+      })
+      }
+     
+    });
+    }
+    getAllChats()
+
+     
+    },[senderId])
+ console.log('onlineUsers = ',usersOnline)
+    const startChat = (item: {id:string;image:string,name:string})=>{
        setReceiverId(item.id)
        setProfileImg(item.image)
        setName(item.name)
-      //  console.log('name -= ',name)
-      //  const data = messages.filter((item)=>{
-      //   return item.name == name
-      //  })
-      //  console.log('data = ',data)
-      //  setContents(data)
     }
     const closeChat = ()=>{
         setReceiverId('')
@@ -103,7 +126,12 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
     />
     <div className="w-full pb-2">
       <div className="flex justify-between">
+        <div className="flex items-center">
         <span className="block ml-2 font-semibold text-base">{item.name}</span>
+        {usersOnline.length>0&&usersOnline.includes(item.id)&&(
+        <span className="block ml-2 font-light text-xs text-green-400">Online</span>
+        )} 
+        </div>
         <span className="block ml-2 text-sm">{convertToLocalTime(item.createdAt)}</span>
       </div>
 <span className={`block ml-2 text-sm ${typerId.length > 0 && typerId.includes(item.id) ? 'text-green-700' : 'text-gray-400'}`}>

@@ -15,9 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatController = void 0;
 const chatSchema_1 = __importDefault(require("../models/chatSchema"));
 const mongodb_1 = require("mongodb");
-const getAllChats = (req, res) => {
+const socketInitial_1 = require("../Socketio/socketInitial");
+const getAllChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const objectId = new mongodb_1.ObjectId(id);
+    const onlineUsers = (0, socketInitial_1.getOnlineUsers)();
     const getChatWithLookups = () => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const matchStage = {
@@ -129,7 +131,8 @@ const getAllChats = (req, res) => {
             ]);
             const combinedResults = [...developersResults, ...companiesResults];
             combinedResults.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            res.status(200).json(combinedResults);
+            console.log('usersOnline = ', onlineUsers);
+            res.status(200).json({ chats: combinedResults, onlineUsers });
         }
         catch (error) {
             console.error(error);
@@ -137,14 +140,21 @@ const getAllChats = (req, res) => {
         }
     });
     getChatWithLookups();
-};
-const getIndividualMessages = (req, res) => {
+});
+const getIndividualMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { senderId, receiverId } = req.query;
         const userIds = [
             new mongodb_1.ObjectId(senderId),
             new mongodb_1.ObjectId(receiverId),
         ];
+        yield chatSchema_1.default.updateMany({
+            senderId: new mongodb_1.ObjectId(receiverId),
+            receiverId: new mongodb_1.ObjectId(senderId),
+            isViewed: false,
+        }, {
+            $set: { isViewed: true }
+        });
         chatSchema_1.default.aggregate([
             {
                 $match: {
@@ -189,7 +199,7 @@ const getIndividualMessages = (req, res) => {
         });
     }
     catch (error) { }
-};
+});
 const sendMessage = (req, res) => {
     try {
         const { senderId, receiverId, senderModel, receiverModel, content, type } = req.body;
@@ -210,8 +220,24 @@ const sendMessage = (req, res) => {
         res.status(500).json({ message: "Error occureed while storing message" });
     }
 };
+const setMessageViewed = (req, res) => {
+    const { id } = req.query;
+    chatSchema_1.default.updateMany({ _id: new mongodb_1.ObjectId(id) }, { isViewed: false })
+        .then(() => {
+        res.status(200);
+    });
+};
+const DeleteMessage = (req, res) => {
+    const { id } = req.params;
+    chatSchema_1.default.deleteOne({ _id: new mongodb_1.ObjectId(id) })
+        .then(() => {
+        res.status(200).json({ message: 'chat Deleted' });
+    });
+};
 exports.ChatController = {
     getAllChats,
     sendMessage,
     getIndividualMessages,
+    setMessageViewed,
+    DeleteMessage
 };
