@@ -5,6 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 
+interface Slot{
+  date:string,
+  time:string
+}
 
 const AddSlot =  ()=>{
 
@@ -16,7 +20,6 @@ const AddSlot =  ()=>{
   const [slots, setSlots] = useState<Slot[]>([]);
   const [time, setTime] = useState('');
 
-  // Create a Date object for the current date
  
   const stripTime = (date: Date): string => {
     const newDate =  new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -54,15 +57,7 @@ const AddSlot =  ()=>{
       toast.error("Invalid time slot format. Please use 'hh:mm am/pm' or 'hh:mm am/pm - hh:mm am/pm'.")
       return
     }
-    // const startTime = time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==' ','-').join('')
-    // console.log('startTime - ',startTime)
-    // const isTimeValidate=()=>{
-    //  slots.some 
-    // }
-    if(slots.some((slot)=>slot.date===selectedDate&&(slot.time.toLowerCase().split('').filter((i:string)=>(i!==' '&&i!=='-')).join('') === time.toLowerCase().split('').filter(i=>(i!==' '&&i!=='-')).join('')||slot.time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==(' '||'-')).join('') === time.toLowerCase().split('-')[0].trim().split('').filter((i)=>i!==(' '||'-')).join('')))){
-      toast.error('slot already added between te time period')
-      return
-    }
+    
     if(selectedDate&&time.trim().length!==0){
       const newSlot = {
         date:selectedDate,
@@ -95,7 +90,7 @@ const AddSlot =  ()=>{
     <div className='flex px-7' >
       <div>
         <DatePicker
-          selected={selectedDate}
+          selected={new Date(selectedDate)}
           onChange={(date: Date) => handleDateChange(date)}
           inline
           minDate={today}  // This will disable all previous dates

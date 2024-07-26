@@ -3,13 +3,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-regular-svg-icons"
 import { faEyeSlash } from "@fortawesome/free-regular-svg-icons"
 import AxiosInstance from "../../../utils/axios"
-import { AxiosResponse } from "axios"
+import { AxiosResponse,AxiosError } from "axios"
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import  {DecodedJwt} from '../../../types/interface'
 import { toast } from "react-toastify"
 import { useNavigate,Link } from "react-router-dom"
 import Loader from "../loader"
+
+
+
+
+interface CredentialResponse {
+  credential?: string;
+  clientId?: string;
+}
+
 
 const Register = ()=>{
   const [formData,setFormData] = useState({
@@ -36,7 +45,7 @@ const Register = ()=>{
     }
    })
   }
-  const handleKeyPress = (event) => {
+  const handleKeyPress = (event:React.KeyboardEvent<HTMLFormElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault(); // Prevents form submission
       handleRegistration();
@@ -89,7 +98,7 @@ const Register = ()=>{
     setLoading(true)
     // const {firstName,lastName,email,phoneNo,password} = formData
      AxiosInstance.post('/dev/registration', formData)
-    .then((res:AxiosResponse<any>)=>{
+    .then((res:AxiosResponse<{message:string}>)=>{
      console.log(res)
      if(res.status === 200){
       toast.success('please check your mail for otp')
@@ -113,7 +122,7 @@ const Register = ()=>{
     })
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleSuccess = async (credentialResponse:CredentialResponse) => {
     if (credentialResponse && credentialResponse.credential) {
       const decoded = jwtDecode<DecodedJwt>(credentialResponse.credential);
       const data = {
@@ -132,7 +141,11 @@ const Register = ()=>{
         toast.success(message);
         navigate("/dev/");
       } catch (error) {
-        toast.error(error.response.data.message);
+        if (error instanceof AxiosError) {
+    toast.error(error.response?.data?.message || 'An error occurred');
+  } else {
+    toast.error('An unknown error occurred');
+  }
       }
     }
   };

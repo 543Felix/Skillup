@@ -4,7 +4,7 @@ import  {jobController}  from '../controllers/jobControllers'
  const jobRoute = express()
 jobRoute.post('/createJob/:id',jobController.createJob)
 // jobRoute.post('/updateJob',jobController.updateJob)
-jobRoute.get('/dev/:id',jobController.JobsToDisplayDev)
+jobRoute.get('/dev/:id/:pageNo',jobController.JobsToDisplayDev)
 jobRoute.get('/getJob/:id',jobController.getJob)
 jobRoute.get('/getQuiz/:devId/:jobId',jobController.getQuiz)
 jobRoute.get('/slots',jobController.getSlots)

@@ -7,16 +7,7 @@ import { ObjectId } from 'mongodb';
 
 const socketUsers= new Map()
 
-interface participantDetails{
-  name:string;
-  id:string
-}
-interface Meeting {
-    hostId: string;
-    participants: participantDetails[];
-}
 
-const meetings: { [key: string]: Meeting } = {};
 
 const initializeSocket = (httpServer:HTTPServer) => {
   const io = new Server(httpServer, {
@@ -32,7 +23,6 @@ const initializeSocket = (httpServer:HTTPServer) => {
      const userId = socket.handshake.query.userId;
      if(userId){
        socketUsers.set(userId,socket.id)
-      console.log('newUser joined on register = ',userId)
       io.emit('onlineUsers',userId)
      }
 
@@ -41,7 +31,6 @@ const initializeSocket = (httpServer:HTTPServer) => {
       socket.on('message',async(data,callback)=>{
       try {
          const {senderId,receiverId,senderModel,receiverModel,content,type} = data
-         console.log('type on backend = ',type)
       new Chat({
         senderId,
         receiverId,
@@ -62,12 +51,10 @@ const initializeSocket = (httpServer:HTTPServer) => {
       
      })
      socket.on('deleteMsg',async(data,callback)=>{
-      console.log('listened for message')
       const {mesId,receiverId,date} = data
        Chat.deleteOne({_id:new ObjectId(mesId as string)})
   .then(()=>{    
     const recieverScktId = socketUsers.get(receiverId)
-    console.log('recieverScktId = ',recieverScktId)
     if(recieverScktId){
       socket.to(recieverScktId).emit('msgDeleted',{mesId,date})
       
@@ -99,8 +86,7 @@ const initializeSocket = (httpServer:HTTPServer) => {
     socket.to(receiversocketId).emit("typing",senderId)
   })
 
-  //  console.log('user exited from the site deRegister  = ')
-  //     socket.emit('exitChat')
+  
 
  
 
@@ -112,7 +98,6 @@ const initializeSocket = (httpServer:HTTPServer) => {
   socket.on('msgViewed',async(data)=>{
     const {senderId,receiverId} = data
     const receiverSocketId =  socketUsers.get(receiverId)
-    console.log('receiverSocketId listening on msgViewed = ',receiverSocketId)
     socket.to(receiverSocketId).emit('msgViewed',{senderId,receiverId})
     
   })
@@ -127,7 +112,6 @@ const initializeSocket = (httpServer:HTTPServer) => {
             socketUsers.delete(key)
           }
         }
-        console.log('userDisconnects')
          io.emit('goesOffline',userId)
     });  
     
@@ -136,7 +120,6 @@ const initializeSocket = (httpServer:HTTPServer) => {
 
 export const getOnlineUsers =()=>{
   const users = [...socketUsers.keys()]
-  console.log('usersOnline on socket initialisation = ',users)
   return users
 }
 

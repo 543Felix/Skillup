@@ -23,7 +23,7 @@ export const Homepage: React.FC = () => {
       navigate('/company/')
     }
     
-   },[])
+   },[navigate])
 
   return (
     <div className=" bg- h-auto">

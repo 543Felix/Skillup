@@ -48,7 +48,7 @@ function updateData(e :React.ChangeEvent<HTMLInputElement>){
     [name] : value,
   }))
 }
-const submitData =(e)=>{
+const submitData =(e: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{
 e.preventDefault()
 if(data.role.trim().length ===0){
   toast.error('Role field cannot be empty')

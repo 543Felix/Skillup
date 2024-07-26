@@ -54,7 +54,7 @@ const createJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.params;
+        const { id, pageNo } = req.params;
         const objectId = new mongodb_1.ObjectId(id);
         const savedjobs = yield developerSchema_1.default.findOne({ _id: objectId }, { savedJobs: 1, _id: 0 });
         if (savedjobs !== (undefined || null)) {
@@ -69,11 +69,18 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
                         foreignField: '_id',
                         as: 'companyDetails'
                     }
+                }, {
+                    $facet: {
+                        totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
+                        jobs: [{ $skip: (Number(pageNo) - 1) * 4 }, { $limit: 4 }]
+                    }
                 }
             ])
                 .then((data) => {
+                const totalCount = data[0].totalCount[0].totalCount > 0 ? data[0].totalCount[0].totalCount : 0;
+                const totalPages = totalCount % 2 === 0 ? Math.floor(totalCount / 4) : Math.floor(totalCount / 4) + 1;
                 const savedJobs = savedjobs === null || savedjobs === void 0 ? void 0 : savedjobs.savedJobs;
-                res.status(200).json({ data, savedJobs });
+                res.status(200).json({ data: data[0].jobs, savedJobs, totalPages });
             });
         }
     }
@@ -226,16 +233,16 @@ const editJob = (req, res) => {
         res.status(500).json({ message: 'An error occured on updating job' });
     }
 };
-const sendProposal = (req, res) => {
+const sendProposal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { developerId, coverLetter, score } = req.body;
         const { jobId } = req.params;
         const DeveloperId = new mongodb_1.ObjectId(developerId);
         const JobId = new mongodb_1.ObjectId(jobId);
-        //  setAppliedJobCount(developerId)
         proposalSchema_1.default.findOne({ jobId: JobId, developerId: DeveloperId })
-            .then((data) => {
+            .then((data) => __awaiter(void 0, void 0, void 0, function* () {
             if (!data) {
+                yield setAppliedJobCount(developerId);
                 new proposalSchema_1.default({
                     jobId,
                     developerId,
@@ -273,12 +280,12 @@ const sendProposal = (req, res) => {
             else {
                 res.status(404).json({ message: 'you have already applied for the job' });
             }
-        });
+        }));
     }
     catch (error) {
         res.status(500).json({ message: 'An error occured while submitting your proposal' });
     }
-};
+});
 const createQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -297,7 +304,6 @@ const getQuiz = (req, res) => {
     try {
         const { jobId, devId } = req.params;
         const objectId = new mongodb_1.ObjectId(String(jobId));
-        setAppliedJobCount(devId);
         jobsSchema_1.default.findOneAndUpdate({ _id: objectId }, { $addToSet: { quizAttendedDevs: devId } }, { new: true })
             .then((response) => {
             const Quiz = response === null || response === void 0 ? void 0 : response.Quiz;
@@ -366,24 +372,6 @@ const getAppliedDevelopers = (req, res) => {
         res.status(404).json({ message: 'No one applied for the job' });
     });
 };
-// const appliedJobsCount = async(req:Request,res:Response)=>{
-//    const {devId} = req.params
-// const jobAggregation = await Job.aggregate([
-//     {
-//       $match: {
-//         'quiz.quizAttendedDevs': new ObjectId(devId),
-//       },
-//     },
-//     {
-//       $project: {
-//         _id: 1,
-//         jobTitle: 1,
-//         'quiz.quizAttendedDevs': 1,
-//       },
-//     },
-//   ]);
-//   res.status(200).json({jobAggregation})
-// }
 const changeProposalStatus = (req, res) => {
     const { jobId } = req.params;
     const { status, devId } = req.body;
@@ -442,16 +430,16 @@ const getAppliedJobsCount = (req, res) => {
             $project: {
                 _id: 0,
                 appliedJobsCount: 1,
-                subscriptionType: 1
+                subscriptions: 1
             }
         }]).then((data) => {
-        if (data[0].subscriptionType === 'Free' && data[0].appliedJobsCount < 5) {
+        if (data[0].subscriptions[data[0].subscriptions.length - 1].planName === 'Free' && data[0].appliedJobsCount < 5) {
             return res.status(200).json({ message: 'You are elligible to apply ' });
         }
-        else if (data[0].subscriptionType === 'Pro' && data[0].appliedJobsCount < 15) {
+        else if (data[0].subscriptions[data[0].subscriptions.length - 1].planName === 'Pro' && data[0].appliedJobsCount < 15) {
             return res.status(200).json({ message: 'You are elligible to apply ' });
         }
-        else if (data[0].subscriptionType === 'Premium') {
+        else if (data[0].subscriptions[data[0].subscriptions.length - 1].planName === 'Premium') {
             return res.status(200).json({ message: 'You are elligible to apply ' });
         }
         else {

@@ -204,6 +204,7 @@ const uploadCertificates = async(req:Request,res:Response)=>{
   if(Data){
     Company.findOneAndUpdate({_id:objectId},{certificates:data})
     .then((data)=>{
+      console.log('upload certificatesdata = ',data)
       res.status(200).json({data})
     })
   }

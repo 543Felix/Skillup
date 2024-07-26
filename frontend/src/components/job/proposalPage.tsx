@@ -9,14 +9,13 @@ import socket from "../../../utils/socket"
 
 
 interface Props{
-    jobId:string,
+    jobId:string|undefined,
     hideProposalPage:Dispatch<SetStateAction<boolean>>;
     score?:number,
     displayJobComponent:()=>void
 }
 
 const ProposalPage:React.FC<Props> = ({jobId,hideProposalPage,score,displayJobComponent})=>{
-    // const uploadRef = useRef(null)
     const developerId = useSelector((state:RootState)=>{
         return state.developerRegisterData._id
     })

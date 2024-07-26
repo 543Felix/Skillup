@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../../store/store'
 import { toast } from 'react-toastify'
 
+
 interface MyComponentProps {
   // setLoader: Dispatch<SetStateAction<boolean>>;
   role:string
@@ -35,19 +36,8 @@ const AddSkill:React.FC<MyComponentProps> = ({role})=>{
         return[...skill]
       })
     }
-   }).catch((error)=>{
-        if(error.response.status === 401){
-          toast.error(error.response.data.message)
-          dispatch(clearDeveloperData())
-          navigate('/')
-        }
-        else if(error.response.status === 403){
-          dispatch(clearDeveloperData())
-          navigate('/')
-          toast.error(error.response.data.message)
-        }
-      })
-  },[id,updatedSkill,dataModel])
+   })
+  },[id,updatedSkill,dataModel,role])
 
      function removeSkills(i:number){
       const arr = [...updateSkill]
@@ -76,7 +66,7 @@ const AddSkill:React.FC<MyComponentProps> = ({role})=>{
       
      }
 
-     function submitSkills(e){
+     function submitSkills(e: React.MouseEvent<HTMLButtonElement>){
       e.preventDefault()
         AxiosInstance.post(`/${role}/update${dataModel}?id=${id}`,{data:updateSkill})
       .then((res)=>{

@@ -1,4 +1,4 @@
-import React,{useEffect,Dispatch,SetStateAction,useState,useRef,useContext} from "react"
+import React,{useEffect,Dispatch,SetStateAction,useState,useRef,useContext,useCallback} from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons"
 import socket from "../../../utils/socket"
@@ -15,7 +15,7 @@ import {chats} from '../../Routes/constants'
 interface Props{
     senderId:string,
     receiverId:string,
-    profileImg:string,
+    profileImg:string|undefined,
     name:string,
     role:'developers'|'companies',
     senderModel:'developers'|'companies',
@@ -34,7 +34,7 @@ const IndividualChats:React.FC<Props> = ({senderId,receiverId,senderModel,receiv
   const [showOptions,setOptions] = useState(false)
   const fileOptions =['image','video']
   const [fileType, setFileType] = useState('');
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file,setFile] = useState<File|null|undefined>(null)
   const [selectedUrl,setSelectedUrl] = useState<string>('')
   const [loader,setLoader] = useState<boolean>(false)
@@ -177,7 +177,7 @@ if (
   socket.off("newMessage")
   socket.off("msgDeleted")
  }
-  },[senderId,receiverId])
+  },[senderId,receiverId,setMessages,setAllchats])
 
   const sendMessOnEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -195,7 +195,6 @@ const sendMessage = (e:React.MouseEvent<HTMLButtonElement>|React.KeyboardEvent<H
    e.preventDefault()
    if(content.trim().length>0){
      socket.emit("stopTyping",senderId,receiverId)
-     console.log('type = ',type) 
 socket.emit('message', { senderId, receiverId, senderModel, receiverModel, content,type },(response:chats) => {
     setMessages((prevMessages) => {
     const index = prevMessages.findIndex((item)=>convertToDate(item.date)===convertToDate(response.createdAt))
@@ -252,6 +251,11 @@ const typing =(e:React.ChangeEvent<HTMLInputElement>)=>{
  setContent(e.target.value)
 }
 
+const cancelTyping =useCallback(()=>{
+ socket.emit("stopTyping",senderId,receiverId)
+},[senderId,receiverId])
+
+
 useEffect(()=>{
  const handler = setTimeout(() => {
    cancelTyping()
@@ -260,11 +264,8 @@ useEffect(()=>{
    return ()=>{
     clearTimeout(handler)
    }
-},[Content])
+},[Content,cancelTyping])
 
-const cancelTyping =()=>{
- socket.emit("stopTyping",senderId,receiverId)
-}
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
         const file:File|undefined = e.target.files?.[0];

@@ -7,8 +7,11 @@ import {registerHelper} from '../helper/registationHelper'
 import  Otp from '../models/otpSchema'
 import Stripe from 'stripe'
 // import Proposal from "../models/proposalSchema";
+import cron from 'node-cron'
 import dotenv from 'dotenv'
 dotenv.config()
+
+
 
 const stripe = new Stripe(process.env.stripe_Secret_Key as string)
 
@@ -21,12 +24,23 @@ const Registration = async (req: Request, res: Response):Promise<Response<any, R
      return res.status(400).json({ message: "user already exists" });
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
-
+   
+      const startDate = new Date()
+      let endDate = new Date(startDate)
+      endDate.setDate(endDate.getDate()+28)
     await  new Developer({
         name: name,
         email: email,
         phoneNo: phoneNo,
         password: hashedPassword,
+        subscriptions:[
+          {
+            planName: 'Free',
+           startDate:startDate,
+           endDate:endDate,
+           isExpired:false
+          }
+        ]
       }).save();
 
       (req.session as MySessionData).developersessionData = {
@@ -55,10 +69,21 @@ const registerWithGoogle =async(req: Request, res: Response)=>{
     const {name,email,password} = req.body
   const Data = await Developer.findOne({name:name})
   if(!Data){
+    const startDate = new Date()
+      let endDate = new Date(startDate)
+      endDate.setDate(endDate.getDate()+28)
   new Developer({
     name:name as string,
     email:email as string,
-    password:password as string
+    password:password as string,
+    subscriptions:[
+          {
+            planName: 'Free',
+           startDate:startDate,
+           duration:endDate,
+           isExpired:false
+          }
+        ]
   }).save()
   .then(()=>{
     Developer.findOne({name:name}).then((devData)=>{
@@ -260,7 +285,6 @@ const HandleSubscription = async(req:Request,res:Response)=>{
   try {
      const {subscriptionType,devId} = req.body
    
-  // const line_items =
 const session = await stripe.checkout.sessions.create({
   payment_method_types: ['card'],
   line_items: [
@@ -281,7 +305,33 @@ const session = await stripe.checkout.sessions.create({
 }); 
 
  if(session.id){
-  Developer.findOneAndUpdate({_id:new ObjectId(devId as string)},{subscriptionType:subscriptionType.mode,appliedJobsCount:0})
+  const duration = subscriptionType.mode==='Pro'?28:364
+  const startDate = new Date()
+  let endDate = new Date(startDate)
+  endDate.setDate(endDate.getDate()+duration)
+   const subscription = {
+    planName : subscriptionType.mode,
+    endDate : endDate,
+    startDate :startDate,
+    isExpired:false
+  }
+  await Developer.findOneAndUpdate(
+  { _id: new ObjectId(devId as string) },
+  {
+    $set: { 'subscriptions.$[elem].isExpired': true }
+  },
+  {
+    arrayFilters: [{ 'elem.isExpired': false }]
+  }
+);
+
+ Developer.findOneAndUpdate(
+  { _id: new ObjectId(devId as string) },
+  {
+    $push: { subscriptions: subscription },
+    $set: { appliedJobsCount: 0 }
+  }
+)
   .then(()=>{
   res.json({id:session.id})
   })
@@ -294,6 +344,30 @@ const session = await stripe.checkout.sessions.create({
 
 }
 
+
+const checkSubscription = async()=>{
+  const todaysDate = new Date()
+  console.log('function is inwoked')
+ await Developer.updateMany(
+    { 
+        'subscriptions.endDate': { $lt: todaysDate },
+        'subscriptions.isExpired': true
+    },
+    {
+        $set: {
+            'subscriptions.$[elem].isExpired': false
+        }
+    },
+    {
+        arrayFilters: [{ 'elem.endDate': { $lt: todaysDate } }],
+        multi: true
+    }
+);
+}
+
+cron.schedule('0 0 * * * ',()=>{
+  checkSubscription()
+})
 
 
 export const developerController =  {

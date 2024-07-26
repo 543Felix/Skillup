@@ -5,7 +5,7 @@ export interface Notification {
   name: string;
   content: string;
   createdAt: string | Date;
-  image: string;
+  image?: string;
 }
 
 export interface chats {

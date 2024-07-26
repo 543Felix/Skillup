@@ -10,13 +10,15 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
-
+import path from 'path'
 
 
 // Socket
 import { createServer } from 'http';
 import initializeSocket from './Socketio/socketInitial'
 
+const currentWorkingDir = path.resolve();
+const parentDir = path.dirname(currentWorkingDir);
 
 dotenv.config();
 const app: Application = express();
@@ -24,6 +26,7 @@ let port = 3001;
 
 const httpServer = createServer(app)
 connectDb();
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -37,7 +40,7 @@ app.use(session({
 }));
     const corsOptions = {
         origin: ['http://localhost:5173','http://localhost:5174'],// Replace with your client's domain
-        credentials: true, // Enable credentials (cookies, headers)
+        credentials: true, 
         crossOriginOpenerPolicy: 'same-origin',
     };
   
@@ -53,6 +56,12 @@ app.use('/notifications',notificationRoute)
 
 
 initializeSocket(httpServer)
+
+ app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.get("*", (req, res) => 
+  res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"))
+);
 
 httpServer.listen(port, () => {
     console.log(`server is running on port http://localhost:${port}/`);

@@ -13,6 +13,7 @@ import { RootState } from "../store/store";
 // import { convertToDate } from "../helperFunctions";
 import GroupCall from "../components/metting/GroupCall";
 
+import { Notification as constanNotification } from "./constants";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -34,7 +35,7 @@ import MakePayment from "../components/payment/stripe";
 
 
 const DeveloperRoute: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<constanNotification[]>([]);
   const [data, setData] = useState([]);
   const [messages, setMessages] = useState<Messages[]>([]);
   const [allChats,setAllchats] = useState<Allchats[]>([])
@@ -53,7 +54,7 @@ const DeveloperRoute: React.FC = () => {
       
       socket.disconnect();
     };
-  }, []);
+  }, [userId]);
   
   useEffect(()=>{
     
@@ -69,7 +70,8 @@ const DeveloperRoute: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-                      <devcontext.Provider value={{ messages, setMessages, allChats , setAllchats }}>
+      <devcontext.Provider value={{ messages, setMessages, allChats , setAllchats }}>
+                       
       <DevHeader notifications={notifications} setNotifications={setNotifications} />
       <div className="flex flex-grow py-28 px-28 space-x-24">
         <div className="flex-grow">

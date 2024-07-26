@@ -1,80 +1,51 @@
-import React,{useState} from "react"
+import React,{Dispatch, SetStateAction} from "react"
+import {Pagination,Stack} from '@mui/material'
 
-
-const Pagination:React.FC = ()=>{
-    const arr:string[] = ['typescript','python','javaScript','java','Ai','machine Learning','Node js','Exress js','Data structures','typescript','python','javaScript','java','Ai','machine Learning','Node js','Exress js','Data structures','typescript','python','javaScript','java','Ai','machine Learning','Node js','Exress js','Data structures','typescript','python','javaScript','java','Ai','machine Learning','Node js','Exress js','Data structures']
-      let  numOfPages = arr.length/4
-     if(numOfPages!==Math.floor(numOfPages)){
-       numOfPages = Math.floor(numOfPages)+1
-      }
-    function divide(content:string[] ,limit:number,page:number){
-
-      console.log('contentsInsideaPage = ',arr.slice((page-1)*limit,limit*page))
-      console.log
+ const main = {
+            '& .Mui-selected': {
+      color: '#feffff !important',
+      backgroundColor: '#7f00ff !important', 
+    },
+    '& .MuiPaginationItem-root': {
+      color: 'white',
+      borderColor: 'white', 
+      backgroundColor: '#333', 
+    },
+    '& .MuiPaginationItem-outlined': {
+      borderColor: 'white', 
+    },
+    '& .MuiPaginationItem-outlined.Mui-selected': {
+      borderColor: '#7f00ff !important', 
     }
-    console.log('')
-   divide(arr,4,3)
-    const [startIndex,setStartIndex] = useState<number>(0)
-    const [endIndex,setEndIndex] = useState<number>(6)
-   const [currentPage,setCurrentPage] = useState<number>(1)
-   const paginationNumber:number[] = []
-   for(let i:number =1;i<=numOfPages;i++){
-    paginationNumber.push(i)
-   }
+        }
 
-   const incrementPageNo = ()=>{
-     if(currentPage<paginationNumber.length){
-      setCurrentPage(currentPage+1)
-      if(currentPage>=paginationNumber[paginationNumber.length-2]){
-        setEndIndex(endIndex+1)
-      }
-       else if(currentPage>=6){
-        setStartIndex(startIndex+1)
-        setEndIndex(endIndex+1)
-      }
-     }
-   }
+        interface Props{
+          totalPages:number,
+          setCurrentPage:Dispatch<SetStateAction<number>>
+        }
 
-   const decrementPageNo=()=>{
-    if(currentPage>1){
-     if(currentPage===paginationNumber[paginationNumber.length-1]){
-      setEndIndex(endIndex-1)
-      setStartIndex(startIndex-1)
-     }else if(currentPage<=6){
-      setStartIndex(startIndex-1)
-     }
-      setCurrentPage(currentPage-1)
-    }
-   }
+const PaginationComponent:React.FC<Props> = ({totalPages,setCurrentPage})=>{
+  
+ 
+
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  };
   
     return (
-        <>
-        <div className="flex justify-center space-x-1 text-white mt-12">
-	<button title="previous" type="button" className="inline-flex items-center justify-center w-8 h-8 py-0 border rounded-md shadow-md bg-black border-gray-100" onClick={decrementPageNo}>
-		<svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="w-4">
-			<polyline points="15 18 9 12 15 6"></polyline>
-		</svg>
-	</button>
-    {paginationNumber&&paginationNumber.length<=7?paginationNumber.map((item)=>(
-	<button type="button" title="Page 1" className={`inline-flex items-center justify-center w-8 h-8 text-sm font-semibold border rounded shadow-md  ${currentPage===item?' text-whie bg-violet border-none ':'bg-black '}`}>{item}</button>
-    )):
-    <>
-    {paginationNumber.slice(startIndex,endIndex).map((item)=>(
-	<button type="button" title="Page 1" className={`inline-flex items-center justify-center w-8 h-8 text-sm font-semibold border rounded shadow-md  ${currentPage===item?' text-whie bg-violet border-none ':'bg-black '}`}>{item}</button>
-    ))}
-    {currentPage!==paginationNumber[paginationNumber.length-1]&&(<p>...</p>)}
-    
-    </>
-    }
-	<button title="next" type="button" className="inline-flex items-center justify-center w-8 h-8 py-0 border rounded-md shadow-md bg-black border-gray-100" onClick={incrementPageNo}>
-		<svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="w-4">
-			<polyline points="9 18 15 12 9 6"></polyline>
-		</svg>
-	</button>
+     <>
+     <div className="w-full flex justify-center items-center">
+<Stack>
+      <Pagination count={totalPages} className="border-white text-white" variant="outlined" shape="rounded" onChange={handlePageChange} sx={main} />
+      {/* {page&&(
+       <span className="text-white">{`Current page number = ${page}`}</span>
+)} */}
+     </Stack>
      </div>
-        </>
      
+     </>
     )
 }
 
-export default Pagination
+export default PaginationComponent

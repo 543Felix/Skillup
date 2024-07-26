@@ -130,7 +130,24 @@ const logOut =(req:Request,res:Response)=>{
     const DeveloperCount = await Developer.find().countDocuments()
     const CompaniesCount = await Company.find().countDocuments()
     const jobsCount = await Job.find().countDocuments()
-    res.status(200).json({DeveloperCount,CompaniesCount,jobsCount})
+    const totalSubscriptionsEach = await Developer.aggregate([
+  { $unwind: '$subscriptions' },
+  { $match: { 'subscriptions.planName': { $in: ['Pro', 'Premium'] } } },
+  { $group: {
+      _id: '$subscriptions.planName',
+      count: { $sum: 1 }
+    }
+  }
+]) 
+const totalIncome = totalSubscriptionsEach.reduce((sum,item)=>{
+  if(item._id==='Pro'){
+    sum += 12*item.count
+  }else if(item._id==='Premium'){
+    sum += 100*item.count
+  }
+  return sum
+},0)
+    res.status(200).json({DeveloperCount,CompaniesCount,jobsCount,totalIncome})
   }
 
 export const adminController ={

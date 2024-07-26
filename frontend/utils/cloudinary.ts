@@ -2,7 +2,7 @@ const upload_preset:string = import.meta.env.VITE_UPLOAD_PRESET
 const cloud_name:string = import.meta.env.VITE_CLOUD_NAME
 // import cloudinary from 'clo'
 
-const uploadImageToCloudinary = async(file)=>{
+const uploadImageToCloudinary = async(file:File)=>{
     try {
     const uploadData = new FormData()
 
@@ -25,7 +25,7 @@ const uploadImageToCloudinary = async(file)=>{
     
 }
 
-export const uploadMultipleImagesToCloudinary = async(files)=>{
+export const uploadMultipleImagesToCloudinary = async(files:File[])=>{
 try {
     const urls:string[] =[]
     for(const file of files){

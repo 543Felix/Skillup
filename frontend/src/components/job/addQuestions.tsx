@@ -33,7 +33,7 @@ const AddQuestions:React.FC<MyComponentProps> = ({jobId,Quiz}) => {
   const [removingIndex, setRemovingIndex] = useState<number | null>(null);
   const  [passingScoreComponent,setPassingScorecomponnt]  = useState(false)
   const [passingScore,setPassingScore]  = useState(0)
-  const containerRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
  useEffect(()=>{
   if(Quiz?.questions?.length){
@@ -273,7 +273,7 @@ const AddQuestions:React.FC<MyComponentProps> = ({jobId,Quiz}) => {
           }
           </div>
         <div ref={containerRef} className="h-[286px] my-4 w-[100px] border border-white absolute right-0 top-4 overflow-hidden flex flex-col-reverse">
-          {questions?.length>0&&questions.map((question, index) => (
+          {questions?.length>0&&questions.map((_, index) => (
             <button
               key={index}
               className={`bg-violet flex justify-between items-center text-white px-2 mr-1 mb-1 mx-1 ${

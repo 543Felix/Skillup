@@ -4,9 +4,16 @@ import { useSelector } from "react-redux"
 import { RootState } from "../../store/store"
 import { useEffect, useState } from "react"
 import AxiosInstance from "../../../utils/axios"
+import { jobDetails } from "../../../types/interface"
+
+interface ProposalData{
+    coverLetter:string;
+    job:jobDetails;
+    status:string
+}
 
 const DeveloperProposals =()=>{
-    const [data,setData] = useState([])
+    const [data,setData] = useState<ProposalData[]>([])
     const devId = useSelector((state:RootState)=>{
         return state.developerRegisterData._id
     })
@@ -16,7 +23,7 @@ const DeveloperProposals =()=>{
             setData(res.data.data)
             console.log('submitted proposals = ',res.data.data)
         })
-    })
+    },[devId])
 return(
     <div>
         {/* <div className="flex text-xl text-white font-bold space-x-5"> 

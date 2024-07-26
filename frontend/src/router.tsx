@@ -45,7 +45,7 @@ const App:React.FC = ()=>{
         {/* <Route path="/job" element={<Jobs role={'main'}/>} /> */}
         {/* <Route path="/job/data" element={<JobData />} /> */}
        {/* Admin */}
-       <Route path="/admin/" element={<AdminHome/>}/>
+       <Route path="/admin/" element={<AdminHome />}/>
        <Route path="/admin/login"  element={<Login data={'Admin'}/>} />
        <Route path="/admin/developers" element={<AdminHome data={'dev'}/>}/>
        <Route path="/admin/companies" element={<AdminHome data={'company'}/>}/>

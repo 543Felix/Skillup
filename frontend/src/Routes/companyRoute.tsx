@@ -45,7 +45,7 @@ const CompanyRoute: React.FC = () => {
       
       socket.disconnect();
     };
-  }, []);
+  }, [userId]);
 
  
 

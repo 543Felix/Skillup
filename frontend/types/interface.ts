@@ -5,6 +5,22 @@ export interface DecodedJwt extends jwtDecode.JwtPayload {
     email?: string;
     sub?: string;
 }
+export interface ComapnyData{
+    _id:string,
+    name?:string
+    companyName?:string 
+    companyType:string
+    noOfEmployes:string
+    email:string
+    phoneNo:string
+    website:string
+    overview:string
+    specialties:string[]
+    certificates:string[]
+    image:string
+    isVerified:boolean
+    isBlocked?:boolean
+   }
  export interface jobDetails{
     _id:string,
     companyId?:string,
@@ -17,8 +33,8 @@ export interface DecodedJwt extends jwtDecode.JwtPayload {
     salary:string,
     Quiz?:object,
     createdAt:string,
-    companyDetails:Array<T>,
-    status:'open'|'closed'
+    companyDetails:ComapnyData[],
+    status:'open'|'closed'|''
    }
 
    export interface DeveloperDetails{
@@ -47,19 +63,21 @@ export interface DecodedJwt extends jwtDecode.JwtPayload {
     isVerified: boolean;
     isBlocked: boolean;
  }
-   export interface ComapnyData{
-    _id:string,
-    name?:string
-    companyName?:string 
-    companyType:string
-    noOfEmployes:string
-    email:string
-    phoneNo:string
-    website:string
-    overview:string
-    specialties:string[]
-    certificates:string[]
-    image:string
-    isVerified:boolean
-    isBlocked?:boolean
-   }
+   
+
+export   interface AppliedDevs {
+  coverLetter:string,
+  status:string,
+  developer:DeveloperData
+}
+
+interface regAndloginRes{
+  _id:string;
+  name:string;
+  image:string;
+}
+
+export interface RegAndLoginResponse {
+  message:string,
+  data:regAndloginRes
+}

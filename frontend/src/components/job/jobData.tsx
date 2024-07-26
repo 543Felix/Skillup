@@ -10,6 +10,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { AppliedDevs } from "../../../types/interface";
+
 
 
 interface Props{
@@ -40,7 +42,7 @@ const JobData: React.FC<Props> = ({ data, showData, setShowData,setParentAnimati
    return(
     settingAnimation()
    )
-  },[])
+  },[showData])
 
   useEffect(()=>{
 if(data.Quiz){
@@ -52,14 +54,15 @@ if(data.Quiz){
     })
   }else{
  AxiosInstance.get(`/job/appliedDevelopers/${data._id}`)
-   .then((res)=>{
-    const filteredArray = res.data.data.filter((item)=>developerId===item.developer._id)
+   .then((res)=>{ 
+    console.log('appliedDEvs = ',res.data.data)
+    const filteredArray = res.data.data.filter((item:AppliedDevs)=>developerId===item.developer._id)
     if(filteredArray.length>0){
       setIsApplied(true)
     }
    })
   }
-  },[])
+  },[data,developerId])
   
  const hidePage =()=>{
   setAnimation('translate-x-full')
@@ -82,11 +85,9 @@ if(data.Quiz){
   const handleApply = ()=>{
     AxiosInstance.get(`/job/appliedJobsCount/${developerId}`)
     .then((res)=>{
-      //  if(res.status===200){
      if(res.status===200){
         setShowProposalPage(true)
      }
-      //  }
     }).catch((error)=>{
       if(error.response.status===401){
         toast.warning(error.response.data.message)
@@ -99,7 +100,6 @@ if(data.Quiz){
 
   return (
     <>
-      {/* {showProposalPage===false? */}
       {showProposalPage===false&&(
    <div
                 className={`fixed top-[60px] right-0 bottom-0  shadow-custom-black  w-full bg-black overflow-y-auto transition-transform duration-1000 ${animation}`}

@@ -215,6 +215,7 @@ const uploadCertificates = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (Data) {
             companySchema_1.default.findOneAndUpdate({ _id: objectId }, { certificates: data })
                 .then((data) => {
+                console.log('upload certificatesdata = ', data);
                 res.status(200).json({ data });
             });
         }

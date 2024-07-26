@@ -1,11 +1,11 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 
 interface data{
-    _id :string,
+    name :string,
 }
 
 const initialState :data={
-    _id:'',
+    name:'',
 }
 
 const adminRegisterDataSlice = createSlice({
@@ -13,10 +13,10 @@ const adminRegisterDataSlice = createSlice({
     initialState,
     reducers:{
         setAdminData: (state, action: PayloadAction<data>) => {
-            state._id = action.payload._id;
+            state.name = action.payload.name;
           },
           clearAdminData: (state) => {
-            state._id = '';
+            state.name = '';
           },
     }
 })

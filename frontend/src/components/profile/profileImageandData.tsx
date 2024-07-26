@@ -96,7 +96,7 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
           .then((data)=>{
             if(data){
               const url = data as string
-              AxiosInstance.post(`/${role}/uploadProfile?id=${id}`,{url}).then((res)=>{
+              AxiosInstance.post(`/${role}/uploadProfile?id=${id}`,{url}).then(()=>{
                 setUploadImageCard(false)
                 const updatedData = JSON.stringify({
                   _id:id,

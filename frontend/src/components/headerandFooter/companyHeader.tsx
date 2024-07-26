@@ -34,7 +34,7 @@ const userId = useSelector((state:RootState)=>{
        socket.disconnect()
     }
       
-  },[])
+  },[userId])
   const {image} = useSelector((state:RootState)=>{
     return state?.companyRegisterData
    })

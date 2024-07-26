@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef,useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRightLong } from '@fortawesome/free-solid-svg-icons';
 import { faCircleCheck, faCircleXmark } from '@fortawesome/free-regular-svg-icons';
@@ -10,11 +10,23 @@ import { RootState } from '../../store/store';
 import ProposalPage from './proposalPage'; 
 
 interface Props{
-  jobId:string;
-  displayJobComponent:()=>void
+  jobId?:string;
+  displayJobComponent?:()=>void
 }
 
-const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
+interface Questions{
+  question:string,
+  options:string[],
+  answer:string
+
+}
+
+// interface Quiz{
+//   passingScore:number,
+//   questions:Questions[]
+// }
+
+const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
   const devId = useSelector((state: RootState) => {
     return state.developerRegisterData._id;
   });
@@ -23,7 +35,7 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
   const [passingScore, setPassingScore] = useState(0);
   const [score, setScore] = useState(0);
   const [time, setTime] = useState(30);
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState<Questions[]>([]);
   const [quizEnded, setQuizEnded] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
   const hasEndedRef = useRef(false);
@@ -35,14 +47,14 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
     AxiosInstance.get(`/job/getQuiz/${devId}/${jobId}`)
       .then((res) => {
         if (isMounted) {
-          console.log('res = ', res);
+          console.log('quiz questions = ', res.data.Quiz);
           setQuestions(res.data.Quiz.questions);
           setPassingScore(res.data.Quiz.passingScore);
         }
       })
       .catch((error) => console.error('Error fetching data:', error));
     return () => {
-      isMounted = false; // Cleanup on unmount
+      isMounted = false; 
     };
   }, [devId, jobId]);
 
@@ -85,17 +97,16 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
   useEffect(() => {
     const handleBlur = () => {
       if (quizStarted) {
-        // Cheating check only if the quiz has started
         disqualifyUser();
       }
     };
 
-    const handleBeforeUnload = (e) => {
+    const handleBeforeUnload = (e:BeforeUnloadEvent) => {
       e.preventDefault();
       disqualifyUser();
     };
 
-    const handleContextMenu = (event) => event.preventDefault();
+    const handleContextMenu = (event:MouseEvent) => event.preventDefault();
 
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && quizStarted && !hasEndedRef.current) {
@@ -133,6 +144,22 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
     setStrokeDasharray(`${percentage}, 100`);
   }, [time]);
 
+  const handleSubmit = useCallback(() => {
+    if (selectedOption === questions[currentQuestion].answer) {
+      setScore(prev => prev + 1);
+    }
+    setSelectedOption('');
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(prev => prev + 1);
+    } else {
+      setQuizStarted(false);
+      setQuizEnded(true);
+      exitFullScreen();
+    }
+
+    setTime(30);
+  },[currentQuestion,questions,selectedOption])
+
   useEffect(() => {
     const myInterval = setInterval(() => {
       setTime((prevState) => {
@@ -148,7 +175,7 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
     }, 1000);
 
     return () => clearInterval(myInterval); // Clear interval on component unmount
-  }, [currentQuestion]);
+  }, [currentQuestion,handleSubmit]);
 
   const startQuiz = () => {
     setTime(30);
@@ -160,21 +187,7 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent})=>{
     setSelectedOption(option);
   };
 
-  const handleSubmit = () => {
-    if (selectedOption === questions[currentQuestion].answer) {
-      setScore(prev => prev + 1);
-    }
-    setSelectedOption('');
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    } else {
-      setQuizStarted(false);
-      setQuizEnded(true);
-      exitFullScreen();
-    }
-
-    setTime(30);
-  };
+  
 
   if (quizEnded) {
     return (

@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+interface Subscription{
+    planName: 'Free' | 'Pro' | 'Premium',
+    startDate:Date,
+    endDate:Date,
+    isExpired:boolean
+}
+
 interface IDeveloper extends Document {
     name: string;
     email: string;
@@ -11,11 +18,13 @@ interface IDeveloper extends Document {
     skills?: string[];
     savedJobs?: mongoose.Types.ObjectId[];
     completedWorks?: string[];
-    subscriptionType:string,
+    subscriptions:Subscription[]|undefined,
     appliedJobsCount:number
     isVerified: boolean;
     isBlocked: boolean;
 }
+
+
 
 const DeveloperSchema: Schema<IDeveloper> = new Schema({
     name: { type: String, required: true },
@@ -28,7 +37,7 @@ const DeveloperSchema: Schema<IDeveloper> = new Schema({
     skills: { type: [String] },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     completedWorks: { type: [String] },
-    subscriptionType:{type:String,enum:['Free','Pro','Premium'],default:'Free'},
+    subscriptions:{type:Array},
     appliedJobsCount:{type:Number,default:0},
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },

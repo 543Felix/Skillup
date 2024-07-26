@@ -82,8 +82,9 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
     getAllChats()
 
      
-    },[senderId])
- console.log('onlineUsers = ',usersOnline)
+    },[senderId,setAllchats])
+
+    
     const startChat = (item: {id:string;image:string,name:string})=>{
        setReceiverId(item.id)
        setProfileImg(item.image)

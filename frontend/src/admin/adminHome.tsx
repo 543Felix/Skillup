@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { faUserTie } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserTie } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
-// import Developers from "./components/developers";
-// import Companies from "./components/companies";
+import Developers from "./components/developers";
+import Companies from "./components/companies";
 import { toast } from "react-toastify";
 import Axiosinstance from "../../utils/axios";
 import { useNavigate } from "react-router-dom";
@@ -29,12 +29,12 @@ const AdminHome: React.FC<MyComponentProps> = ({data}) => {
     if(!Data){
       navigate('/')
     }
-  },[Data])
+  },[Data,navigate])
 
 
   return (
     <>
-      {/* <div className="overflow-y-hidden p-0 m-0"> */}
+      <div className="overflow-y-hidden p-0 m-0">
   <div className="bg-black flex flex-col  space-y-16 items-center w-[220px] h-screen py-20 ">
     <div className="flex flex-col space-y-1 items-center justify-center text-white h-auto">
      <a href="">
@@ -56,7 +56,7 @@ const AdminHome: React.FC<MyComponentProps> = ({data}) => {
       <LogoutOutlined  className="text-white" style={{fontSize:'35px'}} />
     </div>
   </div>
-  {/* <div className="flex flex-col ml-3 w-full ">
+  <div className="flex flex-col ml-3 w-full ">
     <div className="bg-black  grid grid-cols-12 h-16 rounded-lg items-center text-white">
       <input
         className="h-12 ml-7 focus:outline-none rounded-[15px] col-span-5 bg-white text-black"
@@ -71,8 +71,8 @@ const AdminHome: React.FC<MyComponentProps> = ({data}) => {
       
       
     </div>
-  </div> */}
-{/* </div> */}
+  </div> 
+ </div>
 
     </>
   );

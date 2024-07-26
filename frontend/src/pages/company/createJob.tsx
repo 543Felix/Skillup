@@ -28,7 +28,10 @@ const Createjob: React.FC<Props> = ({action,jobId,setShowData}) => {
     salary: "",
     description: "",
     responsibilities: "",
-    Quiz:{},
+    Quiz:{
+      questions:[],
+      passingScore:0
+    },
     skills: "",
     createdAt:new Date().toISOString()
   });
@@ -103,7 +106,10 @@ const HandleNext = ()=>{
         salary: "",
         description: "",
         responsibilities: "",
-        Quiz:{},
+        Quiz:{
+           questions:[],
+      passingScore:0
+        },
         skills: "",
         createdAt:new Date().toISOString()
       });

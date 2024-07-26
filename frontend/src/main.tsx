@@ -5,10 +5,9 @@ import { Provider } from 'react-redux';
 import './index.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// import App from './router.tsx';
+import App from './router.tsx';
 import { store } from './store/store.ts';
-// import AddSlot from './components/job/addSlotForInterview.tsx';
-import DashBoard from './admin/components/dashboard.tsx';
+// import PaginationComponent from './components/pagination.tsx';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -23,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         pauseOnHover
       />
 
-      <DashBoard />
+      <App />
     </Provider>
        
     </>

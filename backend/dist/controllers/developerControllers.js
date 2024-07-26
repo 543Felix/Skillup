@@ -20,6 +20,7 @@ const registationHelper_1 = require("../helper/registationHelper");
 const otpSchema_1 = __importDefault(require("../models/otpSchema"));
 const stripe_1 = __importDefault(require("stripe"));
 // import Proposal from "../models/proposalSchema";
+const node_cron_1 = __importDefault(require("node-cron"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const stripe = new stripe_1.default(process.env.stripe_Secret_Key);
@@ -33,11 +34,22 @@ const Registration = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         }
         else {
             const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+            const startDate = new Date();
+            let endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 28);
             yield new developerSchema_1.default({
                 name: name,
                 email: email,
                 phoneNo: phoneNo,
                 password: hashedPassword,
+                subscriptions: [
+                    {
+                        planName: 'Free',
+                        startDate: startDate,
+                        endDate: endDate,
+                        isExpired: false
+                    }
+                ]
             }).save();
             req.session.developersessionData = {
                 name: name,
@@ -63,10 +75,21 @@ const registerWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const { name, email, password } = req.body;
         const Data = yield developerSchema_1.default.findOne({ name: name });
         if (!Data) {
+            const startDate = new Date();
+            let endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 28);
             new developerSchema_1.default({
                 name: name,
                 email: email,
-                password: password
+                password: password,
+                subscriptions: [
+                    {
+                        planName: 'Free',
+                        startDate: startDate,
+                        duration: endDate,
+                        isExpired: false
+                    }
+                ]
             }).save()
                 .then(() => {
                 developerSchema_1.default.findOne({ name: name }).then((devData) => {
@@ -255,7 +278,6 @@ const resendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { subscriptionType, devId } = req.body;
-        // const line_items =
         const session = yield stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -275,7 +297,25 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
             cancel_url: 'http://localhost:5173/dev/payment-error',
         });
         if (session.id) {
-            developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(devId) }, { subscriptionType: subscriptionType.mode, appliedJobsCount: 0 })
+            const duration = subscriptionType.mode === 'Pro' ? 28 : 364;
+            const startDate = new Date();
+            let endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + duration);
+            const subscription = {
+                planName: subscriptionType.mode,
+                endDate: endDate,
+                startDate: startDate,
+                isExpired: false
+            };
+            yield developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(devId) }, {
+                $set: { 'subscriptions.$[elem].isExpired': true }
+            }, {
+                arrayFilters: [{ 'elem.isExpired': false }]
+            });
+            developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(devId) }, {
+                $push: { subscriptions: subscription },
+                $set: { appliedJobsCount: 0 }
+            })
                 .then(() => {
                 res.json({ id: session.id });
             });
@@ -283,6 +323,24 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
     }
+});
+const checkSubscription = () => __awaiter(void 0, void 0, void 0, function* () {
+    const todaysDate = new Date();
+    console.log('function is inwoked');
+    yield developerSchema_1.default.updateMany({
+        'subscriptions.endDate': { $lt: todaysDate },
+        'subscriptions.isExpired': true
+    }, {
+        $set: {
+            'subscriptions.$[elem].isExpired': false
+        }
+    }, {
+        arrayFilters: [{ 'elem.endDate': { $lt: todaysDate } }],
+        multi: true
+    });
+});
+node_cron_1.default.schedule('0 0 * * * ', () => {
+    checkSubscription();
 });
 exports.developerController = {
     Registration,

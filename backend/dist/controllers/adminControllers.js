@@ -16,6 +16,7 @@ exports.adminController = void 0;
 const adminSchema_1 = __importDefault(require("../models/adminSchema"));
 const developerSchema_1 = __importDefault(require("../models/developerSchema"));
 const companySchema_1 = __importDefault(require("../models/companySchema"));
+const jobsSchema_1 = __importDefault(require("../models/jobsSchema"));
 const mongodb_1 = require("mongodb");
 const registationHelper_1 = require("../helper/registationHelper");
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -121,6 +122,30 @@ const logOut = (req, res) => {
         res.status(500).json({ error });
     }
 };
+const getDetailsOnDashboard = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const DeveloperCount = yield developerSchema_1.default.find().countDocuments();
+    const CompaniesCount = yield companySchema_1.default.find().countDocuments();
+    const jobsCount = yield jobsSchema_1.default.find().countDocuments();
+    const totalSubscriptionsEach = yield developerSchema_1.default.aggregate([
+        { $unwind: '$subscriptions' },
+        { $match: { 'subscriptions.planName': { $in: ['Pro', 'Premium'] } } },
+        { $group: {
+                _id: '$subscriptions.planName',
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+    const totalIncome = totalSubscriptionsEach.reduce((sum, item) => {
+        if (item._id === 'Pro') {
+            sum += 12 * item.count;
+        }
+        else if (item._id === 'Premium') {
+            sum += 100 * item.count;
+        }
+        return sum;
+    }, 0);
+    res.status(200).json({ DeveloperCount, CompaniesCount, jobsCount, totalIncome });
+});
 exports.adminController = {
     login,
     showDevelopers,
@@ -131,5 +156,6 @@ exports.adminController = {
     unblockCompany,
     logOut,
     verifyCompany,
-    unverifyCompany
+    unverifyCompany,
+    getDetailsOnDashboard
 };

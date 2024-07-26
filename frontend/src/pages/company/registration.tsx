@@ -1,7 +1,7 @@
 import React,{useEffect, useState} from "react";
-import axios from "axios";
+import {AxiosResponse} from "axios";
 import { useNavigate } from "react-router-dom";
-
+import AxiosInstance from "../../../utils/axios";
 
 const CompanyRegistration:React.FC = ()=>{
     const [companyName,setCompanyName] = useState('')
@@ -15,13 +15,14 @@ const CompanyRegistration:React.FC = ()=>{
     const [error,setError] = useState('')
 
     const company = localStorage.getItem('companyData')
+        const navigate = useNavigate()
+
     useEffect(()=>{
       if(company){
         navigate('/company/')
       }
-    },[])
+    },[company,navigate])
 
-    const navigate = useNavigate()
     const handleSubmit = (e:React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const pattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{':;?/>.<,])(?=.*[0-9]).{8,}$/;
@@ -33,11 +34,11 @@ const CompanyRegistration:React.FC = ()=>{
             setPasswordError('Passwords do not match.');
           } else {
             setPasswordError('');
-            axios.post('http://localhost:3001/company/registration',{companyName,companyType,phoneNo,noOfEmployes,email,password},{
+            AxiosInstance.post('company/registration',{companyName,companyType,phoneNo,noOfEmployes,email,password},{
               withCredentials: true, // Send cookies and headers with the request
               headers: {
                 'Content-Type': 'application/json',
-              }}).then((res:AxiosResponse<any>)=>{
+              }}).then((res:AxiosResponse<{message:string}>)=>{
                   console.log(res.status)
                  if(res.status === 200){
                   navigate('/company/register/verifyOtp')

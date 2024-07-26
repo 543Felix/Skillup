@@ -9,6 +9,9 @@ import {formatDistanceToNow , parseISO} from 'date-fns'
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 
+import PaginationComponent from "../../components/pagination";
+
+
 interface Props{
   jobType?:string
 }
@@ -38,6 +41,8 @@ const Displayjob: React.FC<Props> = ({jobType}) => {
     companyDetails: [],
     status: 'open'
   });
+  const [currentPage,setCurrentPage] = useState(1)
+  const [totalPages,setTotalPages] = useState(0)
 
   const showJobComponent = (e: React.MouseEvent<HTMLDivElement>, data: jobDetails) => {
     e.preventDefault();
@@ -48,14 +53,15 @@ const Displayjob: React.FC<Props> = ({jobType}) => {
 
   useEffect(() => {
     const type = jobType==='savedJobs'?'savedJobs':'dev'
-    Axiosinstance.get(`/job/${type}/${id}`)
+    Axiosinstance.get(`/job/${type}/${id}/${currentPage}`)
       .then((response) => {
-        console.log('response of savedJobs = ',response.data)
         if(type==='savedJobs'){
           setJobs(response.data.data);
         }else{
           setJobs(response.data.data);
           setSavedJobs(response.data.savedJobs)
+          console.log('totalPages = ',totalPages)
+          setTotalPages(response.data.totalPages)
         }
         
          
@@ -65,7 +71,7 @@ const Displayjob: React.FC<Props> = ({jobType}) => {
         }
         console.log(error)
       })
-  }, [id,jobType,saveOrUnsave]);
+  }, [id,jobType,saveOrUnsave,currentPage,totalPages]);
 
   const calculateTimeDifference = (startDate :string):string => {
     const date = parseISO(startDate);
@@ -102,14 +108,18 @@ Axiosinstance.patch(`/job/unSaveJob/${id}`,{jobId})
 }
   return (
     <>
+    <div className="flex flex-col items-center justify-center">
     <div className=" ">
       {showJob ? (
-        
+        <>
         <JobData data={jobData} showData={showJob} setParentAnimation={setAnimation} setShowData={setShowJob} />
-      ) : (
+        </>
         
- jobs.length > 0?jobs.map((job) => (
-         <div
+      ) : jobs.length > 0?(
+ <>
+ {
+   jobs.map((job) => (
+ <div
          className={` bg-opacity-[15%] rounded-[15px] shadow-custom-black h-[290px] w-[730px]  mb-[20px] px-5 py-3 text-white transition-transform duration-75 ${animation}`}
             key={job._id}
             onClick={(e) => showJobComponent(e, job)}
@@ -149,15 +159,27 @@ Axiosinstance.patch(`/job/unSaveJob/${id}`,{jobId})
                 </button>
               ))}
             </div>
-          </div>
-        )):
+  </div>
+            
+
+        
+        ))}
+      {totalPages>1&&(
+        <div className="flex justify-end">
+<PaginationComponent totalPages={totalPages} setCurrentPage={setCurrentPage} />
+        </div>
+      )}
+
+ </>
+  ):(
         <div className="flex justify-center">
        <h1 className="text-white text-6xl">There Are no saved jobs</h1>
        </div>
       )}
        </div>
+       </div>
     </>
-  );
-};
+
+)};
 
 export default Displayjob;

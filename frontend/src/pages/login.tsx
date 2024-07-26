@@ -10,7 +10,7 @@ import { setAdminData } from "../store/slice/adminSlice";
 import AxiosInstance from '../../utils/axios'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye,faEyeSlash } from "@fortawesome/free-regular-svg-icons";
-
+import { RegAndLoginResponse } from "../../types/interface";
 
 const Login: React.FC<{ data: string }> = ({data}) => {
   const role = data ||'defaultRole'
@@ -35,7 +35,7 @@ const Login: React.FC<{ data: string }> = ({data}) => {
     else if(role==='Admin'&&admin){
       navigate('/admin/')
     }
-  },[])
+  },[role,navigate,dev,company,admin])
 
   const handleValidation = () => {
     let valid = true;
@@ -60,7 +60,7 @@ const Login: React.FC<{ data: string }> = ({data}) => {
     }
     if(role === 'dev'){
       AxiosInstance.post('/dev/login',{name,password})
-      .then((res:AxiosResponse<any>)=>{
+      .then((res:AxiosResponse<RegAndLoginResponse>)=>{
         if(res.status===200){
           if(res.data.data){
             const {_id,image,name} = res.data.data
@@ -85,7 +85,7 @@ const Login: React.FC<{ data: string }> = ({data}) => {
     else if(role === 'company'){
       console.log('entered to company login post api')
       AxiosInstance.post('/company/login',{name,password})
-      .then((res:AxiosResponse<any>)=>{
+      .then((res:AxiosResponse<RegAndLoginResponse>)=>{
         if(res.status === 200){
           const {_id,image,name} = res.data.data
           dispatch(setCompanyData({_id,image,name}))
@@ -107,7 +107,7 @@ const Login: React.FC<{ data: string }> = ({data}) => {
     }
       if(role === 'Admin'){
         AxiosInstance.post('/admin/login',{name,password})
-      .then((res:AxiosResponse<any>)=>{
+      .then((res:AxiosResponse<{message:string}>)=>{
         console.log(res)
           dispatch(setAdminData({name}))
           localStorage.setItem('adminData',JSON.stringify({name}))

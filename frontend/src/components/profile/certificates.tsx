@@ -8,7 +8,6 @@ import { RootState } from '../../store/store'
 import { useSelector } from 'react-redux'
 import Axiosinstance from '../../../utils/axios'
 
-
 interface MyComponentProps {
     setLoader: Dispatch<SetStateAction<boolean>>;
   }
@@ -21,9 +20,10 @@ const Certificates:React.FC<MyComponentProps> = ({setLoader})=>{
      })    
 const [card,setCard] = useState(false)
 const [images, setImages] = useState<string[]>(new Array(4).fill(undefined));
-const fileInputRef  = useRef(null)
-const [certificate,setCertificate] = useState([])
-const [updatedCertificate,setUpdatedCertificate] = useState([])
+const [files,setFiles] = useState<File[]>([])
+const fileInputRef  = useRef<HTMLInputElement>(null)
+const [certificate,setCertificate] = useState<string[]>([])
+// const [updatedCertificate,setUpdatedCertificate] = useState<[]>([])
 useEffect(()=>{
     Axiosinstance.get(`/company/profile?id=${id}`)
     .then((res)=>{
@@ -35,14 +35,15 @@ useEffect(()=>{
         })
       }
     })
-},[id,updatedCertificate])
+},[id])
 const selectImage = ()=>{
-    fileInputRef.current.click()
+    fileInputRef.current!.click()
     
 }
-    const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        const newFiles = files.map((file)=>{
+    const handleFileChange = (e:React.ChangeEvent<HTMLInputElement>) => {
+        const Files = Array.from(e.target.files||[]);
+        setFiles(files)
+        const newFiles = Files.map((file)=>{
             return URL.createObjectURL(file)
         })
         const selectedFiles = newFiles.length>0?newFiles.slice(0, 4):newFiles.slice(0,newFiles.length)
@@ -66,13 +67,15 @@ const selectImage = ()=>{
 const uploadCertificates =(e:React.MouseEvent<HTMLButtonElement>)=>{
 e.preventDefault()
 setLoader(true)
-uploadMultipleImagesToCloudinary(images)
+uploadMultipleImagesToCloudinary(files)
 .then((data)=>{
-    console.log('res = ',{data})
+    console.log('after upload to cloudinary = ',{data})
     Axiosinstance.post(`/company/uploadCertificates?id=${id}`,{data})
-    .then((res)=>{         
+    .then(()=>{         
        setCard(false)
-        setUpdatedCertificate(res) 
+        if(data){
+        setCertificate(data) 
+        }
     toast.success('certificates uploaded successfully')
     })
 
@@ -83,7 +86,7 @@ uploadMultipleImagesToCloudinary(images)
    
 })
 }
-function closeCard(e){
+function closeCard(e:React.MouseEvent<SVGSVGElement, MouseEvent>){
     e.preventDefault()
     setCard(false)
     setImages(()=>{

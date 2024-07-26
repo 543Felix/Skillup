@@ -8,7 +8,7 @@ const jobControllers_1 = require("../controllers/jobControllers");
 const jobRoute = (0, express_1.default)();
 jobRoute.post('/createJob/:id', jobControllers_1.jobController.createJob);
 // jobRoute.post('/updateJob',jobController.updateJob)
-jobRoute.get('/dev/:id', jobControllers_1.jobController.JobsToDisplayDev);
+jobRoute.get('/dev/:id/:pageNo', jobControllers_1.jobController.JobsToDisplayDev);
 jobRoute.get('/getJob/:id', jobControllers_1.jobController.getJob);
 jobRoute.get('/getQuiz/:devId/:jobId', jobControllers_1.jobController.getQuiz);
 jobRoute.get('/slots', jobControllers_1.jobController.getSlots);

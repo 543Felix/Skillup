@@ -36,6 +36,7 @@ developerRoute.post('/create-checkout-session',developerController.HandleSubscri
 
 
 
+
 // developerRoute.get('/dev/:id',jobController.JobsToDisplayDev)
 // developerRoute.get('/getJob/:id',jobController.getJob)
 // developerRoute.get('/getQuiz/:devId/:jobId',jobController.getQuiz)

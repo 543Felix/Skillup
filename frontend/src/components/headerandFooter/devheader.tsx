@@ -12,12 +12,12 @@ import AxiosInstance from '../../../utils/axios'
 import { useSelector,useDispatch } from "react-redux";
 import { RootState } from "../../store/store";
 import { clearDeveloperData } from "../../store/slice/developerSlice";
-import {Notification} from '../../Routes/constants'
+import {Notification as ConstantNotification } from '../../Routes/constants'
 import { convertToLocalTime } from "../../helperFunctions";  
 
 interface Props{
-  notifications:Notification[],
-  setNotifications:Dispatch<SetStateAction<Notification[]>>
+  notifications:ConstantNotification[],
+  setNotifications:Dispatch<SetStateAction<ConstantNotification[]>>
 }
 
 

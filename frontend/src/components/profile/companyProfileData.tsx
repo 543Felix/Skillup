@@ -57,7 +57,7 @@ const CompanyData :React.FC<MyComponentProps> =({setLoader})=>{
 
    
 
-    function submitData(e){
+    function submitData(e: React.MouseEvent<HTMLButtonElement, MouseEvent>){
         e.preventDefault()
         setLoader(true)
         const {noOfEmployes,website,overview} = formData

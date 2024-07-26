@@ -52,7 +52,7 @@ const createJob = async (req:Request,res:Response)=>{
 }
 const JobsToDisplayDev = async(req:Request,res:Response)=>{
    try {
-      const {id} =req.params
+      const {id,pageNo} =req.params
       const objectId = new ObjectId(id as string)
       const savedjobs = await Developer.findOne({ _id: objectId },{savedJobs:1,_id:0});
       if(savedjobs!==(undefined||null)){
@@ -67,11 +67,19 @@ const JobsToDisplayDev = async(req:Request,res:Response)=>{
                 foreignField: '_id',
                 as: 'companyDetails'
               }
-            }  
+            }, {
+            $facet: {
+                totalCount: [{$group:{_id:null,totalCount:{$sum:1}}}],
+                jobs: [{$skip:(Number(pageNo)-1)*4},{ $limit: 4 }]
+            }
+        }
           ])
           .then((data)=>{
+            const totalCount = data[0].totalCount[0].totalCount > 0 ? data[0].totalCount[0].totalCount : 0;
+
+            const totalPages = totalCount%2===0?Math.floor(totalCount/4):Math.floor(totalCount/4)+1
             const savedJobs  = savedjobs?.savedJobs
-            res.status(200).json({data,savedJobs})
+            res.status(200).json({data:data[0].jobs,savedJobs,totalPages})
            
          })
       }
@@ -227,16 +235,16 @@ const editJob =(req:Request,res:Response)=>{
   
 }
 
-const sendProposal = (req:Request,res:Response)=>{
+const sendProposal = async(req:Request,res:Response)=>{
    try {
       const {developerId,coverLetter,score} = req.body
       const {jobId} = req.params
       const DeveloperId = new ObjectId(developerId as string)
       const JobId = new ObjectId(jobId as string)
-      //  setAppliedJobCount(developerId)
        Proposal.findOne({jobId:JobId,developerId:DeveloperId})
-      .then((data)=>{
-         if(!data){
+      .then(async(data)=>{
+         if(!data){  
+                   await setAppliedJobCount(developerId)
             new Proposal({
                jobId,
                developerId,
@@ -297,7 +305,6 @@ const getQuiz = (req:Request,res:Response)=>{
    try {
       const {jobId,devId} = req.params
    const objectId =  new ObjectId(String(jobId))
-   setAppliedJobCount(devId)
    Job.findOneAndUpdate({_id:objectId},{$addToSet:{quizAttendedDevs:devId}},{new:true})
    .then((response)=>{
        const Quiz = response?.Quiz
@@ -431,15 +438,15 @@ const getAppliedJobsCount = (req:Request,res:Response)=>{
       $project:{
          _id:0,
          appliedJobsCount:1,
-         subscriptionType:1
+         subscriptions:1
       }
    }]).then((data)=>{
-      if(data[0].subscriptionType === 'Free'&&data[0].appliedJobsCount<5){
+      if(data[0].subscriptions[data[0].subscriptions.length-1].planName === 'Free'&&data[0].appliedJobsCount<5){
          return res.status(200).json({message:'You are elligible to apply '})
       }
-      else if (data[0].subscriptionType === 'Pro'&&data[0].appliedJobsCount<15){
+      else if (data[0].subscriptions[data[0].subscriptions.length-1].planName === 'Pro'&&data[0].appliedJobsCount<15){
        return  res.status(200).json({message:'You are elligible to apply '})
-      }else if (data[0].subscriptionType === 'Premium'){
+      }else if (data[0].subscriptions[data[0].subscriptions.length-1].planName === 'Premium'){
         return res.status(200).json({message:'You are elligible to apply '})
       }else{
        return  res.status(401).json({message:'your subscription plan expired'})

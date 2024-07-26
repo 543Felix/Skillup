@@ -18,7 +18,6 @@ const chatSchema_1 = __importDefault(require("../models/chatSchema"));
 const notificationSchema_1 = __importDefault(require("../models/notificationSchema"));
 const mongodb_1 = require("mongodb");
 const socketUsers = new Map();
-const meetings = {};
 const initializeSocket = (httpServer) => {
     const io = new socket_io_1.Server(httpServer, {
         cors: {
@@ -31,13 +30,11 @@ const initializeSocket = (httpServer) => {
         const userId = socket.handshake.query.userId;
         if (userId) {
             socketUsers.set(userId, socket.id);
-            console.log('newUser joined on register = ', userId);
             io.emit('onlineUsers', userId);
         }
         socket.on('message', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 const { senderId, receiverId, senderModel, receiverModel, content, type } = data;
-                console.log('type on backend = ', type);
                 new chatSchema_1.default({
                     senderId,
                     receiverId,
@@ -58,12 +55,10 @@ const initializeSocket = (httpServer) => {
             }
         }));
         socket.on('deleteMsg', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log('listened for message');
             const { mesId, receiverId, date } = data;
             chatSchema_1.default.deleteOne({ _id: new mongodb_1.ObjectId(mesId) })
                 .then(() => {
                 const recieverScktId = socketUsers.get(receiverId);
-                console.log('recieverScktId = ', recieverScktId);
                 if (recieverScktId) {
                     socket.to(recieverScktId).emit('msgDeleted', { mesId, date });
                 }
@@ -92,8 +87,6 @@ const initializeSocket = (httpServer) => {
             const receiversocketId = socketUsers.get(receiverId);
             socket.to(receiversocketId).emit("typing", senderId);
         }));
-        //  console.log('user exited from the site deRegister  = ')
-        //     socket.emit('exitChat')
         socket.on("stopTyping", (senderId, receiverId) => __awaiter(void 0, void 0, void 0, function* () {
             const receiversocketId = socketUsers.get(receiverId);
             socket.to(receiversocketId).emit("stopTyping", senderId);
@@ -101,7 +94,6 @@ const initializeSocket = (httpServer) => {
         socket.on('msgViewed', (data) => __awaiter(void 0, void 0, void 0, function* () {
             const { senderId, receiverId } = data;
             const receiverSocketId = socketUsers.get(receiverId);
-            console.log('receiverSocketId listening on msgViewed = ', receiverSocketId);
             socket.to(receiverSocketId).emit('msgViewed', { senderId, receiverId });
         }));
         socket.on('disconnect', () => {
@@ -112,14 +104,12 @@ const initializeSocket = (httpServer) => {
                     socketUsers.delete(key);
                 }
             }
-            console.log('userDisconnects');
             io.emit('goesOffline', userId);
         });
     });
 };
 const getOnlineUsers = () => {
     const users = [...socketUsers.keys()];
-    console.log('usersOnline on socket initialisation = ', users);
     return users;
 };
 exports.getOnlineUsers = getOnlineUsers;

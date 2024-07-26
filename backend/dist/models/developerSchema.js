@@ -35,7 +35,7 @@ const DeveloperSchema = new mongoose_1.Schema({
     skills: { type: [String] },
     savedJobs: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Job' }],
     completedWorks: { type: [String] },
-    subscriptionType: { type: String, enum: ['Free', 'Pro', 'Premium'], default: 'Free' },
+    subscriptions: { type: Array },
     appliedJobsCount: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },

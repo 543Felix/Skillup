@@ -9,6 +9,8 @@ import { setCompanyData } from "../store/slice/companySlice";
 import { toast } from "react-toastify";
 import Axiosinstance from "../../utils/axios";
 import Loader from "./loader";
+import { RegAndLoginResponse } from "../../types/interface";
+
 
 interface MyComponentProps {
   data:'dev' | 'company'
@@ -23,15 +25,15 @@ const VerifyOtp: React.FC<MyComponentProps> = ({ data }) => {
   const navigate = useNavigate();
 
   const dev = localStorage.getItem("developerData");
-  const comapny = localStorage.getItem("companyData");
+  const company = localStorage.getItem("companyData");
 
   useEffect(() => {
     if (role === "dev" && dev) {
       navigate("/dev/");
-    } else if (role === "company" && comapny) {
+    } else if (role === "company" && company) {
       navigate("/company/");
     }
-  }, []);
+  }, [navigate,role,dev,company]);
 
   useEffect(() => {
     ((time = 60) => {
@@ -49,7 +51,7 @@ const VerifyOtp: React.FC<MyComponentProps> = ({ data }) => {
   const submit = () => {
     setLoading(true);
       Axiosinstance.post(`/${role}/verify`,{otp:otp})
-        .then((response: AxiosResponse<any>) => {
+        .then((response: AxiosResponse<RegAndLoginResponse>) => {
           if (response.status === 200) {
             const {_id,image,name } = response.data.data;
             if(role ==='dev'){

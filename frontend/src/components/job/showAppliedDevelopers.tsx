@@ -7,7 +7,7 @@ import IndividualChats from "../chat/individualChat"
 import { useSelector } from "react-redux"
 import { RootState } from "../../store/store"
 import socket from "../../../utils/socket"
-
+import { AppliedDevs,DeveloperData } from "../../../types/interface" 
 
 
 
@@ -21,9 +21,9 @@ interface Props{
 
 
 const AppliedDevelopers:React.FC<Props> = ({jobId,jobName,hidePage})=>{
-   const [data,setData] = useState([])
+   const [data,setData] = useState<AppliedDevs[]>([])
    const [receiverId,setReceiverId] = useState<string>('')
-   const [profileImg,setProfileImg] = useState<string>('')
+   const [profileImg,setProfileImg] = useState<string|undefined>('')
    const [name,setName] = useState<string>('')
    const [selectedStatus,setSelectedStatus] = useState<string>('')
    const [showIndiChat,setShowIndiChat] =  useState<boolean>(false)
@@ -73,13 +73,13 @@ const AppliedDevelopers:React.FC<Props> = ({jobId,jobName,hidePage})=>{
   }
 };
 
- const handleChange = (event:React.ChangeEventHandler<HTMLSelectElement>,id) => {
+ const handleChange = (event:React.ChangeEvent<HTMLSelectElement>,id:string) => {
     const newStatus = event.target.value;
     setSelectedStatus(newStatus);
     updateJobStatus(newStatus, id);
   };
 
-const SendMessage=(item)=>{
+const SendMessage=(item:DeveloperData)=>{
 setReceiverId(item._id)
 setProfileImg(item.image)
 setName(item.name)

@@ -8,6 +8,7 @@ interface data{
 
 const data = localStorage.getItem('companyData')
 const parsedData = JSON.parse(data as string)
+
 const initialState :data={
     _id:parsedData?._id??'',
     image:parsedData?.image??'',
