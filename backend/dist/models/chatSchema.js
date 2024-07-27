@@ -28,7 +28,7 @@ const chatSchema = new mongoose_1.default.Schema({
     type: {
         type: String,
         default: 'message',
-        enum: ['audio', 'video', 'message', 'image']
+        enum: ['audio', 'video', 'message', 'image', 'raw']
     },
     content: {
         type: String,

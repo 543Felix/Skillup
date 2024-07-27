@@ -19,6 +19,8 @@ interface MyComponentProps {
   role: string; 
 }
 
+
+
 const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
   const id  = useSelector((state:RootState)=>{
         return role==='dev'?state.developerRegisterData._id:role ==='company'?state.companyRegisterData._id:null
@@ -95,7 +97,7 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
           uploadImageToCloudinary(file)
           .then((data)=>{
             if(data){
-              const url = data as string
+              const url = data.url as string
               AxiosInstance.post(`/${role}/uploadProfile?id=${id}`,{url}).then(()=>{
                 setUploadImageCard(false)
                 const updatedData = JSON.stringify({

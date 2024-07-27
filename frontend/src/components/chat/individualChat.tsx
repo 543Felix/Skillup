@@ -24,6 +24,10 @@ interface Props{
 }
 
 
+interface fileUploadOutput {
+  url:string,
+  fileType:string
+}
 
 
 const IndividualChats:React.FC<Props> = ({senderId,receiverId,senderModel,receiverModel,profileImg,name,role,closeChat})=>{
@@ -32,8 +36,6 @@ const IndividualChats:React.FC<Props> = ({senderId,receiverId,senderModel,receiv
   const context = useContext(role==='companies'?companyContext:devcontext)
   const {messages,setMessages,setAllchats} = context
   const [showOptions,setOptions] = useState(false)
-  const fileOptions =['image','video']
-  const [fileType, setFileType] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file,setFile] = useState<File|null|undefined>(null)
   const [selectedUrl,setSelectedUrl] = useState<string>('')
@@ -42,9 +44,8 @@ const IndividualChats:React.FC<Props> = ({senderId,receiverId,senderModel,receiv
   const [messageId,setMessageId] = useState<string>('')
   
 
- const handleFileOption = (type:string)=>{
-  setOptions(false)
-setFileType(type)
+ const handleFileOption = (e:React.MouseEvent<HTMLButtonElement>)=>{
+  e.preventDefault()
 if(fileInputRef.current){
 fileInputRef.current?.click()
 }
@@ -269,8 +270,10 @@ useEffect(()=>{
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
         const file:File|undefined = e.target.files?.[0];
+        console.log('file = ',file)
           setFile(file)
             if(file){
+        console.log(file.type.startsWith('video/'))
           const imageUrl = URL.createObjectURL(file)
           setSelectedUrl(imageUrl)
           console.log('url = ',imageUrl)
@@ -278,16 +281,20 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
       }
       const closeMediaAccess = ()=>{
         setSelectedUrl('')
-        setFileType('')
+        // setFileType('')
       }
 const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
   e.preventDefault()
   if(file){
     setLoader(true)
     uploadImageToCloudinary(file)
-    .then((imageUrl)=>{
-    console.log('imageUrl = ',imageUrl)  
-    sendMessage(e,'image',imageUrl)
+    .then((data:fileUploadOutput|undefined)=>{ 
+      if(data){
+          const {url,fileType} = data
+    console.log('imageUrl = ',url)  
+    sendMessage(e,fileType,url)
+      }
+    
     }).finally(()=>{
       setLoader(false)
     closeMediaAccess()
@@ -335,6 +342,8 @@ const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
       })
         // })
   }
+
+
     return(
       <div className="w-full h-screen bg-black relative overflow-hidden">
       <div className="flex bg-black right-0 justify-between items-center border-b">
@@ -386,7 +395,7 @@ const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
               
               <div className={`bg-violet rounded  ${item.type==='message'&&('px-2 py-2 my-2')} text-white relative max-w-[300px]`}>
            
-                {item.type==='image'?<img className="h-[200px] w-[350px]" object-cover src={item.content} />:item.type==='video'?<video className="h-[250px] w-[300px]" controls src={item.content} />:<span className="block ">{item.content}</span>}
+                {item.type==='image'?<img className="h-[200px] w-[350px]" object-cover src={item.content} />:item.type==='video'?<video className="h-[250px] w-[300px]" controls src={item.content} />:item.type==='audio'?<audio className="h-[250px] w-[300px]" controls src={item.content} />:item.type==='RAW'?<embed className="h-[250px] w-[300px]"  src={item.content} />:<span className="block ">{item.content}</span>}
                 <div className={`flex items-center space-x-1 text-[10px] ${senderId===item.senderId?'text-right':'text-left'}`} >
                    <span>{convertToLocalTime(item.createdAt)}</span>
                    {senderId===item.senderId&&(
@@ -412,19 +421,12 @@ const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
         </ul>
         
       </div>
-         {showOptions===true&&fileOptions.length>0&&(
-          <div className="bg-gray-700 text-white flex flex-col z-10 absolute  left-8 bottom-12 rounded-[4px]" >
-            {fileOptions.map((item,index)=>(
-            <h2 className="hover:bg-white px-2 py-1 hover:text-gray-700" onClick={()=>handleFileOption(fileOptions[index])}>{item}</h2>
-            ))}
-          </div>
-        )}
         <input
                 type="file"
                 hidden
                 ref={fileInputRef}
                 style={{ display: 'none' }}
-                accept={fileType === 'video' ? 'video/*' : 'image/*'}
+               accept="image/*, video/*, audio/*, application/pdf"
                 onChange={handleFileChange}
                 
             />
@@ -433,7 +435,7 @@ const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
                 <div className=" absolute right-2 top-2 ">
                  <FontAwesomeIcon className="text-white bg-black p-2 rounded-full h-6 " icon={faCircleXmark} onClick={closeMediaAccess} />
                 </div>
-            {fileType==='image'?<img className="h-[200px] w-full" src={selectedUrl}  alt="" />:fileType==='video'?<video className="h-[200px] w-full" src={selectedUrl} controls />:<></>}
+            {file&&file.type.startsWith('image/')?<img className="h-[200px] w-full" src={selectedUrl}  alt="" />:file&&file.type.startsWith('video/')?<video className="h-[200px] w-full" src={selectedUrl} controls />:file&&file.type.startsWith('application/')? <embed className="h-[200px] w-full" src={selectedUrl}  />:file&&file.type.startsWith('application/')?<audio src={selectedUrl} controls/>:<><h1 className="text-white ">Unsupported file</h1></>}
             <div className="flex justify-end mr-3 py-2">
               <button className="bg-violet text-white px-5 py-1" onClick={uploadImage}>
                 confirm
@@ -449,7 +451,7 @@ const uploadImage = async(e:React.MouseEvent<HTMLButtonElement>)=>{
             )}
            
       <div className="absolute overflow-hidden bottom-0 w-full py-3 bg-black px-3 flex items-center justify-between border-t border-gray-300">
-        <button className="outline-none focus:outline-none">
+        <button className="outline-none focus:outline-none" onClick={handleFileOption}>
           <svg
             className="text-white h-6 w-6"
             xmlns="http://www.w3.org/2000/svg"
