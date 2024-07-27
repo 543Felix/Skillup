@@ -36,10 +36,10 @@ app.use(session({
     secret: process.env.session_Secret_Key as string,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: { secure: false } 
 }));
     const corsOptions = {
-        origin: ['http://localhost:5173','http://localhost:5174'],// Replace with your client's domain
+        origin: process.env.FrontEndUrl,
         credentials: true, 
         crossOriginOpenerPolicy: 'same-origin',
     };
