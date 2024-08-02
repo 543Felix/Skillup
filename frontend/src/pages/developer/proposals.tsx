@@ -24,6 +24,7 @@ const DeveloperProposals =()=>{
             console.log('submitted proposals = ',res.data.data)
         })
     },[devId])
+    console.log('Applied jobs data = ',data)
 return(
     <div>
         {/* <div className="flex text-xl text-white font-bold space-x-5"> 
@@ -35,7 +36,7 @@ return(
     <div className="grid gap-2 grid-cols-1 lg:grid-cols-1">
         <div className="bg-black p-4 shadow-lg rounded-lg">
             <div className="flex justify-start">
-             <h1 className="font-bold text-white text-xl"> Submitted Proposals</h1>
+             <h1 className="font-bold text-white text-xl"> Applied jobs</h1>
             </div>
            
             <div className="mt-4">

@@ -18,7 +18,6 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const registationHelper_1 = require("../helper/registationHelper");
 const otpSchema_1 = __importDefault(require("../models/otpSchema"));
 const mongodb_1 = require("mongodb");
-const chatSchema_1 = __importDefault(require("../models/chatSchema"));
 const registation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { companyName, companyType, noOfEmployes, email, phoneNo, password } = req.body;
     try {
@@ -115,6 +114,13 @@ const logOut = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         res.status(500).json(error);
+    }
+});
+const isBlocked = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const comapny = yield companySchema_1.default.findOne({ _id: new mongodb_1.ObjectId(id) });
+    if (comapny) {
+        res.status(200).json({ isBlocked: comapny.isBlocked });
     }
 });
 const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -244,11 +250,11 @@ const resendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 //chats 
-const getChats = (req, res) => {
-    const { Id } = req.params;
-    const objectId = new mongodb_1.ObjectId(Id);
-    chatSchema_1.default.aggregate([{ $match: { senderId: objectId } }]);
-};
+// const getChats = (req:Request,res:Response)=>{
+// const {Id} = req.params
+// const objectId = new ObjectId(Id)
+// Chat.aggregate([{$match:{senderId:objectId}}])
+// } 
 exports.companyController = {
     registation,
     verifyRegistration,
@@ -260,5 +266,6 @@ exports.companyController = {
     updateAbout,
     uploadCertificates,
     updateSpecialties,
-    resendOtp
+    resendOtp,
+    isBlocked
 };

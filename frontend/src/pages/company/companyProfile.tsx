@@ -15,13 +15,18 @@ const CompanyProfile:React.FC<MyComponentProps> = ({role})=>{
   const [loader,setLoader] = useState(false)
     return(
         <>
-        <div className='h-[900px] w-[900px] grid grid-rows-3 z-0 ' >
-         <div className=' grid grid-cols-4'>
+        <div className=' max:w-[900px] flex flex-col space-y-2 ' >
+         <div className='flex '>
             <ProfileCardWithData setLoader={setLoader} role={role} />
             <CompanyData setLoader={setLoader} />
-         </div> 
-         < AddSkill role={role}  />
+         </div>
+        <div className=''>
+        < AddSkill role={role}  />
          < Certificates setLoader={setLoader} />
+        </div>
+         
+         {/* </div> */}
+         
         </div>
         {loader&&(
          <Loader />

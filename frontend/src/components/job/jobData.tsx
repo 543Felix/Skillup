@@ -46,7 +46,7 @@ const JobData: React.FC<Props> = ({ data, showData, setShowData,setParentAnimati
 
   useEffect(()=>{
 if(data.Quiz){
-    AxiosInstance.get(`/job/quizAttendedDevs/${data._id}/${developerId}`)
+    AxiosInstance.get(`/dev/quizAttendedDevs/${data._id}/${developerId}`)
     .then((res)=>{
       if(res.status === 401){
         setIsApplied(true)
@@ -81,9 +81,8 @@ if(data.Quiz){
   hidePage()
  }
 
-
   const handleApply = ()=>{
-    AxiosInstance.get(`/job/appliedJobsCount/${developerId}`)
+    AxiosInstance.get(`/dev/appliedJobsCount/${developerId}`)
     .then((res)=>{
      if(res.status===200){
         setShowProposalPage(true)
@@ -97,6 +96,8 @@ if(data.Quiz){
        console.log(error.response.status)
     })
   }
+   
+  
 
   return (
     <>
@@ -104,7 +105,6 @@ if(data.Quiz){
    <div
                 className={`fixed top-[60px] right-0 bottom-0  shadow-custom-black  w-full bg-black overflow-y-auto transition-transform duration-1000 ${animation}`}
               >
-      {/* <div className="absolute h-full bg-opacity-15"></div> */}
       <div className="flex justify-end top-0  w-full py-[14px] p-3 sticky bg-violet">
         <FontAwesomeIcon
           className="text-white  bg-violet px-3 py-1 rounded-md text-3xl cursor-pointer"
@@ -128,24 +128,50 @@ if(data.Quiz){
               {data.description}
             </h3>
           </div>
-          <div className="flex justify-evenly w-full px-3 py-5 border-t-2">
-            <div className="flex flex-col items-center">
-              <h1 className="text-white text-base font-semibold">Salary</h1>
+          <div className="flex flex-col border-t-2">
+          <ul className="list-disc text-white pl-7 py-5">
+            <li className="text-white">
+               <div className="flex items-center space-x-2">
+              <h1 className=" text-base font-semibold">Salary</h1>
+              <span>:</span>
               <span className="text-neutral-300 text-sm">{data.salary}</span>
             </div>
-            <div className="flex flex-col items-center">
-              <h1 className="text-white text-base font-semibold">
+            </li>
+            <li className="text-white">
+               <div className="flex items-center space-x-2">
+              <h1 className=" text-base font-semibold">
                 Project length
               </h1>
+              <span>:</span>
               <span className="text-neutral-300 text-sm">{data.length}</span>
             </div>
-            <div className="flex flex-col items-center">
-              <h1 className="text-white text-base font-semibold">
+            </li>
+            <li className="text-white">
+               <div className="flex items-center space-x-2">
+              <h1 className=" text-base font-semibold">
                 Working hours per week
               </h1>
+              <span>:</span>
               <span className="text-neutral-300 text-sm">{data.workingHoursperWeek}</span>
             </div>
+            </li>
+            <li>
+               <div className="flex items-center space-x-2">
+              <h1 className=" text-base font-semibold">Qualification</h1>
+              <span>:</span>
+              <span className="text-neutral-300 text-sm">{data.qualification}</span>
+            </div>
+            </li>
+            <li>
+               <div className="flex items-center space-x-2">
+              <h1 className=" text-base font-semibold">Experience needed</h1>
+              <span>:</span>
+              <span className="text-neutral-300 text-sm">{data.experienceLevel}</span>
+            </div>
+            </li>
+          </ul>
           </div>
+          
           <div className="text-white border-t-2 px-3 py-5 space-y-2">
             <h1 className="text-xl font-semibold">Key responsibilities</h1>
             <span className="max-w-10 text-neutral-300 text-sm">
@@ -168,18 +194,8 @@ if(data.Quiz){
         </div>
         <div className="col-start-6 col-span-2  p-3">
           <div className="flex flex-col ">
-            {/* <button className="bg-violet font-semibold rounded-[10px] flex items-center justify-center text-white py-2 hover:text-violet hover:bg-white group">
-              Save job
-              <FontAwesomeIcon
-                className="ml-2 mt-[3px] text-white group-hover:text-violet h-[16px]"
-                icon={faBookmark} 
-                onClick={(e)=>saveJob(e,data._id)}
-              />
-            </button> */}
-  
             <button className="bg-violet font-semibold text-white hover:bg-white hover:text-violet py-2 rounded-[10px]"  onClick={isApplied ?undefined: handleApply }>
               {isApplied===true?'Applied':'Apply now'}
-              
             </button>
           </div>
           <div className="flex flex-col justify-center space-y-1 text-white mt-24">

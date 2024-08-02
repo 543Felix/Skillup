@@ -167,7 +167,7 @@ const AddQuestions:React.FC<MyComponentProps> = ({jobId,Quiz}) => {
   };
   const submitQuestion=()=>{
     if(questions.length===10){
-     AxiosInstance.post(`/job/createQuiz/${jobId}`,{questions,passingScore})
+     AxiosInstance.post(`/company/createQuiz/${jobId}`,{questions,passingScore})
      .then((res)=>{ 
       setQuestions([])
       setPassingScore(0)

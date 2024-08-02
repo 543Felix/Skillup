@@ -24,6 +24,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const workExperienceSchema = new mongoose_1.Schema({
+    companyName: { type: String, required: true },
+    role: { type: String, required: true },
+    startDate: { type: String, required: true },
+    endDate: { type: String, required: true },
+});
 const DeveloperSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
@@ -32,10 +38,14 @@ const DeveloperSchema = new mongoose_1.Schema({
     image: { type: String, default: '' },
     role: { type: String, default: '' },
     description: { type: String, default: '' },
+    qualification: { type: String },
     skills: { type: [String] },
     savedJobs: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Job' }],
-    completedWorks: { type: [String] },
+    // completedWorks: { type: [String] },
     subscriptions: { type: Array },
+    certificates: { type: Array },
+    workExperience: { type: [workExperienceSchema] },
+    resume: { type: String },
     appliedJobsCount: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },

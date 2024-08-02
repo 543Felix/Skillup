@@ -19,7 +19,7 @@ const CompanyJob = () => {
   const [jobName,setJobName] = useState<string>('')
   useEffect(() => {
     if (id) {
-      Axiosinstance.get(`/job/company/${id}`)
+      Axiosinstance.get(`/company/allJobs/${id}`)
         .then((Data) => {
           console.log('jobs = ', Data.data.response);
           setJobs(Data.data.response);
@@ -33,7 +33,7 @@ const CompanyJob = () => {
 
   const handleVaccancy = (e:React.MouseEvent<HTMLButtonElement, MouseEvent>,status :('open'|'closed'),id:string)=>{
     e.stopPropagation()
-   Axiosinstance.patch(`/job/setStatus?id=${id}`,{status}).then((response)=>{
+   Axiosinstance.patch(`/company/setStatus?id=${id}`,{status}).then((response)=>{
     if(response.data.message){
       const updatedJobs = jobs.map((job) => {
         if (job._id === id) {
@@ -60,7 +60,7 @@ const CompanyJob = () => {
 
   const deleteJob = (e:React.MouseEvent<SVGSVGElement, MouseEvent>,id:string)=>{
     e.stopPropagation()
-   Axiosinstance.delete(`/job/deleteJob/${id}`)
+   Axiosinstance.delete(`/company/deleteJob/${id}`)
    .then((res)=>{
     const updateJobs = jobs.filter((job)=>job._id!==id)
     setJobs(updateJobs)

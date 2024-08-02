@@ -10,7 +10,7 @@ import Stripe from 'stripe'
 import cron from 'node-cron'
 import dotenv from 'dotenv'
 dotenv.config()
-
+import deleteFile from '../helper/cloudinary'
 
 
 const stripe = new Stripe(process.env.stripe_Secret_Key as string)
@@ -163,8 +163,33 @@ const Login =async (req:Request,res:Response):Promise<Response<any, Record<strin
   
 }
 
+const resendOtp = async(req:Request,res:Response)=>{
+  try {
+    const data = (req.session as MySessionData).developersessionData
+    const cookieData = req.cookies.registrationData 
+    if(data){
+      let otp: number = registerHelper.generateOtp();
+      console.log('otp = ',otp)
+     await new Otp({
+        otp: otp,
+        name: data.name
+      }).save();
+      registerHelper.sendOTP(data.email, otp).then(()=>{
+        res.status(200).json({ message: "check your mail for otp"});
+      })
+    }
+  
+  } catch (error) {
+    res.status(500).json(error)
+  }
+  
+}
 
-
+const isBlocked = async(req:Request,res:Response)=>{
+  const {id} = req.params
+  const developer = await  Developer.findOne({_id:new ObjectId(id as string)})
+  res.status(200).json({isBlocked:developer?.isBlocked})
+}
 
 const logOut =(req:Request,res:Response)=>{
   try { 
@@ -176,6 +201,9 @@ const logOut =(req:Request,res:Response)=>{
   }
   
 }
+
+
+// Profile 
 
 const uploadProfilePic  = async(req:Request,res:Response)=>{
     const {id} = req.query
@@ -226,11 +254,11 @@ const updateProfileData = async(req:Request,res:Response)=>{
 const updateRoleandDescription = async(req:Request,res:Response)=>{
   try {
     const {id} = req.query
-  const {role,description} = req.body.data
+  const {role,description,qualification} = req.body.data
   const objectId = new ObjectId(id as string)
-  const data = await Developer.findOneAndUpdate({_id:objectId},{role:role,description:description})
+  const data = await Developer.findOneAndUpdate({_id:objectId},{role:role,description:description,qualification:qualification})
 if(data){
-return res.status(200).json({message:'role and describtion updated',data})
+return res.status(200).json({message:'role and describtion updated'})
 }else{
 return res.status(404).json({message:'updataion failed'})
 }
@@ -257,29 +285,134 @@ if(data){
   }
 
 }
-
-const resendOtp = async(req:Request,res:Response)=>{
-  try {
-    const data = (req.session as MySessionData).developersessionData
-    const cookieData = req.cookies.registrationData 
-    if(data){
-      let otp: number = registerHelper.generateOtp();
-      console.log('otp = ',otp)
-     await new Otp({
-        otp: otp,
-        name: data.name
-      }).save();
-      registerHelper.sendOTP(data.email, otp).then(()=>{
-        res.status(200).json({ message: "check your mail for otp"});
-      })
+const getWorkExperience = async(req:Request,res:Response)=>{
+  const {id} = req.params
+  Developer.aggregate([
+    {$match:{_id:new ObjectId(id as string)}},
+    {
+    $addFields: {
+      workExperience: {
+        $map: {
+          input: {
+            $sortArray: {
+              input: "$workExperience",
+              sortBy: {
+                startDate: -1  
+              }
+            }
+          },
+          as: "we",
+          in: "$$we"
+        }
+      }
     }
-  
-  } catch (error) {
-    res.status(500).json(error)
+  },{
+    $project:{_id:0,workExperience:1}
   }
-  
+  ])
+  .then((data)=>{
+     res.status(200).json({workExperience:data[0].workExperience})
+  })
+}
+const addWorkExpirence = async(req:Request,res:Response)=>{
+  const {id,workData} = req.body
+  const {companyName,role,startDate,endDate} = workData
+ Developer.findOneAndUpdate(
+  { _id: new ObjectId(id as string) },
+  {
+    $push: { workExperience: { companyName, role, startDate,endDate } }
+  },
+  {
+    new: true
+  }
+).then((data)=>{
+    res.status(200).json({data})
+  }).catch(()=>{
+    res.status(404).json({message:'user not found'})
+  })
 }
 
+const deleteWorkExperience = async(req:Request,res:Response)=>{
+  const {id,workId} = req.params
+  Developer.findOneAndUpdate({_id:new ObjectId(id as string)},
+    {
+      $pull:{workExperience:{_id:new ObjectId(workId as string)}}
+    }
+  ).then(()=>{
+    res.status(200).json({messsage:'work experience deleted successfully'})
+  })
+  .catch(()=>{
+    res.status(500).json({messsage:'An error occured while updating'})
+  })
+}
+const updateWorkExperience = async(req:Request,res:Response)=>{
+const {id,workData} = req.body
+let data = await Developer.updateOne(
+  { _id: new ObjectId(id as string), "workExperience._id": new ObjectId(workData._id as string) },
+  { $set: { "workExperience.$": workData } }
+);
+if(data){
+  res.status(200).json({message:'successfully updated your  workExperience'})
+}
+
+}
+
+const uploadCertificates = async(req:Request,res:Response)=>{
+  const {id,url,certificateName} = req.body
+  console.log('data = ',{id,url,certificateName})
+  Developer.findOneAndUpdate({_id: new ObjectId(id as string)},
+{$addToSet:{certificates:{url,certificateName}}})
+.then((data)=>{
+  console.log('updated Data = ',data)
+  res.status(200).json({message:'certificate Succesfully updated'})
+})
+.catch(()=>{
+  res.status(500).json({message:'An unexpected error occured while updating data'})
+})
+
+}
+
+ const deleteCertificate = async(req:Request,res:Response)=>{
+  const {id,url,resourcetype} = req.body
+     console.log('data = ',{id,url,resourcetype})
+    const data = await deleteFile(url,resourcetype)
+    console.log('data = ',data)
+    if(data.result==='ok'){
+         Developer.findOneAndUpdate({_id: new ObjectId(id as string)},
+        {
+          $pull:{certificates:{url:url}}
+        }).then((data)=>{
+          console.log('successfully updated  =  ',data)
+          res.status(200).json({message:'certificate sucessfully deleted'})
+        }).catch((error)=>{
+          console.log('An error occured while editing data = ',error)
+        })
+    }
+ }
+
+ const uploadResume = async(req:Request,res:Response)=>{
+    const {id,url} = req.body
+    console.log('data on upload Resume = ',{id,url})
+    Developer.findOneAndUpdate({_id:new ObjectId(id as string)},{$set:{resume:url}})
+    .then(()=>{
+      res.status(200).json({message:'resume uploaded successfully'})   
+    }).catch(()=>{
+      res.status(500).json({message:'An unexpected error occured while updating resume'})
+    })
+ }
+
+ const getResume = async(req:Request,res:Response)=>{
+  const {id} =  req.params
+ let data = await Developer.findOne({_id: new ObjectId(id as string)})
+ if(data){
+  const {resume} = data
+  res.status(200).json({resume})
+ }
+ }
+
+
+
+//  Subscription
 
 const HandleSubscription = async(req:Request,res:Response)=>{
   try {
@@ -380,8 +513,17 @@ export const developerController =  {
   updateProfileData,
   updateRoleandDescription,
   updateSkills,
+  addWorkExpirence,
+  getWorkExperience,
+  deleteWorkExperience,
+  updateWorkExperience,
+  uploadCertificates,
+  deleteCertificate,
+  uploadResume,
+  getResume,
   resendOtp,
   registerWithGoogle,
   HandleSubscription,
+  isBlocked,
   
 } 

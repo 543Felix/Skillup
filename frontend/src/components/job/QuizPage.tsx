@@ -44,7 +44,7 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
  
   useEffect(() => {
     let isMounted = true; // Add a flag to ensure cleanup on unmount
-    AxiosInstance.get(`/job/getQuiz/${devId}/${jobId}`)
+    AxiosInstance.get(`/dev/getQuiz/${devId}/${jobId}`)
       .then((res) => {
         if (isMounted) {
           console.log('quiz questions = ', res.data.Quiz);

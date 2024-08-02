@@ -19,7 +19,7 @@ const devAuthorization = async(req: Request,res: Response,next: NextFunction) =>
     const tokenVerified = jwt.verify(token, accessTokenSecretKey);
     if (tokenVerified) {
       let isBlocked:boolean =  await isDeveloperBlocked((tokenVerified as JwtPayload).data)
-      if(isBlocked===true){
+      if(isBlocked===false){
          next();
       }else{
       return  res.status(403).json({message:'user is blocked'})
@@ -40,13 +40,15 @@ const devAuthorization = async(req: Request,res: Response,next: NextFunction) =>
 
         if (refreshTokenVerified) {
           let isBlocked:boolean =  await isDeveloperBlocked((refreshTokenVerified as JwtPayload).data)
-          if(isBlocked === true){
+          if(isBlocked === false){
             const token = registerHelper.generateToken(
             (refreshTokenVerified as JwtPayload).data
           );
           res.cookie("accessToken", token.accessToken, { httpOnly: true });
           next();
           }else{
+            res.clearCookie('accessToken')
+            res.clearCookie('refreshToken')
             return res.status(403).send('user is blocked')
           }
         
@@ -62,8 +64,10 @@ const devAuthorization = async(req: Request,res: Response,next: NextFunction) =>
 
 const isDeveloperBlocked = async (data: JwtPayload): Promise<boolean> => {
   try {
-    const developer = await Developer.findOne({ name: data.name, email: data.email, isBlocked: false });
-    return !!developer; 
+    const developer = await Developer.findOne({ name: data.name, email: data.email});
+        return developer!.isBlocked; 
+  
+
   } catch (error) {
     return false;
   }

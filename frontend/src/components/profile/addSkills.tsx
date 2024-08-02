@@ -94,15 +94,15 @@ const AddSkill:React.FC<MyComponentProps> = ({role})=>{
   </div>
   <div className='my-10  bg-white
     h-[auto] w-[510px] p-4  rounded-[25px]'>
-    <div className='flex text-violet w-[500px] flex-wrap' >
+    <div className='flex text-black w-[500px] flex-wrap' >
     {updateSkill.length>0 && updateSkill.map((item,index) => (
   <div
-    key={index} // Assuming 'key' is unique for each item
-    className='flex border-2 border-violet rounded-[15px] items-center justify-center px-2 py-1 mt-2 mr-2 transform hover:scale-105 transition-transform duration-300'
+    key={index} 
+    className='flex border-2 border-black rounded-[15px] items-center justify-center px-2 py-1 mt-2 mr-2 transform hover:scale-105 transition-transform duration-300'
   >
     <button className='text-sm px-2'>{item}</button>
     <FontAwesomeIcon
-      className="h-4 text-violet pr-2"
+      className="h-4 text-black pr-2"
       icon={faXmark}
       onClick={()=>{removeSkills(index)}}
     />
@@ -110,8 +110,8 @@ const AddSkill:React.FC<MyComponentProps> = ({role})=>{
 ))}
     </div>
     <div className='relative'>
-    <input type="text" value={skill} className='mt-3 w-[450px] h-10 rounded-[15px] border-2 focus:outline-none border-violet bg-transparent text-black pl-5 focus:ring-0 focus:border-violet' onChange={(e)=>setSkill(e.target.value)} pattern='^\s*[a-zA-Z0-9 ]+\s*(,\s*[a-zA-Z0-9 ]+\s*)*$' title='You can add skills one by one or separated by commas without any special characters.' />
-    <button className='bg-violet px-3 absolute right-[29px] mt-[12px] h-[40px] rounded-r-[15px] items-center justify-center border border-violet' onClick={()=>addnewSkills(skill)}>Add +</button>
+    <input type="text" value={skill} className='mt-3 w-[450px] h-10 rounded-[15px] border-2 focus:outline-none border-black bg-transparent text-black pl-5 focus:ring-0 focus:border-black' onChange={(e)=>setSkill(e.target.value)} pattern='^\s*[a-zA-Z0-9 ]+\s*(,\s*[a-zA-Z0-9 ]+\s*)*$' title='You can add skills one by one or separated by commas without any special characters.' />
+    <button className='bg-black px-3 absolute right-[29px] mt-[12px] h-[40px] rounded-r-[15px] items-center justify-center border border-black' onClick={()=>addnewSkills(skill)}>Add +</button>
     </div>   
   </div>
   <div className='flex flex-col'>
@@ -121,24 +121,24 @@ const AddSkill:React.FC<MyComponentProps> = ({role})=>{
 </div>
 
         )}
-        <div className="row-start-2 bg-slate-500 bg-opacity-[15%] shadow-lg shadow-black rounded-[15px] p-7 mt-3 ">
+        <div className="max-h-[320px] bg-slate-500 bg-opacity-[15%] shadow-lg shadow-black rounded-[15px] p-6 ">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl text-white font-bold font-serif">{dataModel} :</h1>
-            <div className="flex items-end" onClick={()=>setAddSkillPage(true)}>
-              <div className="border-2 rounded-full h-7 w-7 text-white border-white  flex justify-center items-center">
-                <FontAwesomeIcon
-                  className="flex items-center h-3  w-3"
+            <FontAwesomeIcon
+                  className="flex items-center h-[30px]  "
                   icon={faPlus}
+                  onClick={()=>setAddSkillPage(true)}
                 />
-              </div>
-            </div>
           </div>
-          <div className='p-4'>
-            {skills&&skills.map((item,index)=>(
+          {skills&&(
+          <div className='py-4'>
+            {skills.map((item,index)=>(
               <button key={index} className='justify-center items-center bg-transparent border-2 border-violet text-white px-4 py-[6px]  mr-3 mb-3 rounded-[8px]'>{item}</button>
             ))}
             
           </div>
+          )}
+          
         </div>
         </>
     )

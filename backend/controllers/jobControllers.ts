@@ -6,11 +6,11 @@ import Developer from "../models/developerSchema"
 import Proposal from "../models/proposalSchema"
 
 
-
 interface Slot{
    date: Date,
    time: string
 }
+
 
 
 const setAppliedJobCount = async(id :string)=>{
@@ -20,7 +20,7 @@ const setAppliedJobCount = async(id :string)=>{
 
 const createJob = async (req:Request,res:Response)=>{
    try {
-      const {jobTitle,length,workingHoursperWeek,salary,description,responsibilities,skills,createdAt} = req.body
+      const {jobTitle,length,workingHoursperWeek,salary,description,responsibilities,skills,createdAt,experienceLevel,qualification} = req.body
       const {id} = req.params
    const companyId =  new ObjectId(String(id))
    const data = await Job.findOne({companyId:companyId,jobTitle:jobTitle})
@@ -36,6 +36,8 @@ const createJob = async (req:Request,res:Response)=>{
          workingHoursperWeek,
          salary,
          description,
+         experienceLevel,
+         qualification,
          responsibilities,
          createdAt,  
          skills:convertedSkills
@@ -52,13 +54,38 @@ const createJob = async (req:Request,res:Response)=>{
 }
 const JobsToDisplayDev = async(req:Request,res:Response)=>{
    try {
-      const {id,pageNo} =req.params
+      const {id} =req.params
       const objectId = new ObjectId(id as string)
+   const qualification = req.query.qualification as string[];
+   const experienceLevel = req.query.experienceLevel as string[] 
+   const search =  req.query.search as string
+   const sort = req.query.sort as string
+const match:any = {status:'open'};
+const Sort:any = {jobTitle:1}
+
+if (qualification && qualification.length > 0) {
+  match.qualification = { $in: qualification };
+}
+
+if (experienceLevel && experienceLevel.length > 0) {
+  match.experienceLevel = { $in: experienceLevel };
+}
+
+if (search && search.trim().length > 0) {
+  match.$or = [
+    { jobTitle: { $regex: search, $options: "i" } },
+    { skills: { $elemMatch: { $regex: search, $options: "i" } } }
+  ];
+}
+if(sort){
+   Sort.jobTitle = Number(sort)
+}
+
       const savedjobs = await Developer.findOne({ _id: objectId },{savedJobs:1,_id:0});
       if(savedjobs!==(undefined||null)){
          Job.aggregate([
-            {
-              $match: { status: 'open' }
+             {
+            $match: match
             },
             {
               $lookup: {
@@ -67,19 +94,13 @@ const JobsToDisplayDev = async(req:Request,res:Response)=>{
                 foreignField: '_id',
                 as: 'companyDetails'
               }
-            }, {
-            $facet: {
-                totalCount: [{$group:{_id:null,totalCount:{$sum:1}}}],
-                jobs: [{$skip:(Number(pageNo)-1)*4},{ $limit: 4 }]
-            }
-        }
-          ])
+            },{
+               $sort : Sort??1
+            } 
+          ],{ collation: { locale: "en", strength: 2 } })
           .then((data)=>{
-            const totalCount = data[0].totalCount[0].totalCount > 0 ? data[0].totalCount[0].totalCount : 0;
-
-            const totalPages = totalCount%2===0?Math.floor(totalCount/4):Math.floor(totalCount/4)+1
             const savedJobs  = savedjobs?.savedJobs
-            res.status(200).json({data:data[0].jobs,savedJobs,totalPages})
+            res.status(200).json({data,savedJobs})
            
          })
       }
@@ -122,6 +143,30 @@ const SavedJobs = (req:Request,res:Response)=>{
    try {
       const {id} = req.params
    const objectId = new ObjectId(id as string)
+   const qualification = req.query.qualification as string[];
+   const experienceLevel = req.query.experienceLevel as string[] 
+   const search =  req.query.search as string
+   const sort = req.query.sort as string
+
+const match:any = {};
+const Sort:any ={"jobs.jobTitle":1}
+if (qualification && qualification.length > 0) {
+  match["jobs.qualification"] = { $in: qualification };
+}
+
+if (experienceLevel && experienceLevel.length > 0) {
+  match["jobs.experienceLevel"] = { $in: experienceLevel };
+}
+
+if (search && search.trim().length > 0) {
+  match.$or = [
+    { "jobs.jobTitle": { $regex: search, $options: "i" } },
+    { "jobs.skills": { $elemMatch: { $regex: search, $options: "i" } } }
+  ];
+}
+if(sort){
+   Sort["jobs.jobTitle"] = Number(sort)
+}
    Developer.aggregate([
       { $match: { 
           _id: objectId,
@@ -149,16 +194,19 @@ const SavedJobs = (req:Request,res:Response)=>{
           as: "jobs"
         }
       },
-      { $unwind: "$jobs" }, // unwind the jobs array after lookup
+      { $unwind: "$jobs" }, 
       { 
         $match: { 
-          "jobs.status": "open" 
+          "jobs.status": "open" ,
+          ...match
         } 
+      },{
+        $sort: Sort
       },
       { $project: { job: "$jobs",_id: 0 } }
-    ]).then((response )=>{
+    ],{ collation: { locale: "en", strength: 2 } }).then((response )=>{
       if(response.length===0){
-         return res.status(404).json('There are no saved jobs')
+         return res.status(200).json({data:response})
       }
       const data = response.map((item)=>item.job)
       res.status(200).json({data})
@@ -211,7 +259,7 @@ const editJob =(req:Request,res:Response)=>{
    try {
       const {id} = req.params
       const jobId = new ObjectId(id as string)
-      const {jobTitle,length,workingHoursperWeek,description,responsibilities,skills,salary}  = req.body
+      const {jobTitle,length,workingHoursperWeek,description,responsibilities,skills,salary,experienceLevel,qualification}  = req.body
       let Skills
       if(typeof skills === 'string'){
        Skills = skills.split(',').filter((item:string)=>item.trim().length!==0)
@@ -225,6 +273,8 @@ const editJob =(req:Request,res:Response)=>{
          description,
          responsibilities,
          salary,
+         experienceLevel,
+         qualification,
          skills:Skills
       }).then((data)=>{
          res.status(200).json({message:'job updation successfull'})
@@ -455,6 +505,9 @@ const getAppliedJobsCount = (req:Request,res:Response)=>{
    
 }
 
+
+
+
 export const jobController={
    JobsToDisplayDev,
    createJob,
@@ -474,5 +527,5 @@ export const jobController={
    changeProposalStatus,
    getSubmitedProposal,
    showQuizAttendedDevelopers,
-   getAppliedJobsCount
+   getAppliedJobsCount,
 } 

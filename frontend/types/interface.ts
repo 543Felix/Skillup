@@ -31,6 +31,8 @@ export interface ComapnyData{
     responsibilities:string,
     description:string,
     salary:string,
+    qualification:string,
+    experienceLevel:string;
     Quiz?:object,
     createdAt:string,
     companyDetails:ComapnyData[],
@@ -71,6 +73,8 @@ export   interface AppliedDevs {
   developer:DeveloperData
 }
 
+
+
 interface regAndloginRes{
   _id:string;
   name:string;
@@ -81,3 +85,20 @@ export interface RegAndLoginResponse {
   message:string,
   data:regAndloginRes
 }
+
+
+export interface EducationData{
+  education:string;
+  institutionName:string;
+  course:string;
+  startYear:string;
+  endYear:string
+} 
+export interface WorkData{
+  _id?:string;
+  companyName:string;
+  role:string;
+  startDate:string;
+  endDate:string;
+} 
+

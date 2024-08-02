@@ -7,7 +7,7 @@ import { RootState } from '../../store/store'
 import { useSelector,useDispatch } from 'react-redux'
 import AxiosInstance from '../../../utils/axios'
 import { toast } from 'react-toastify'
-import { clearCompanyData } from '../../store/slice/companySlice'
+import { companyLogOut } from '../../store/slice/companySlice'
 import socket from '../../../utils/socket'
 import { Notification } from '../../Routes/constants';
 
@@ -52,8 +52,7 @@ const userId = useSelector((state:RootState)=>{
      AxiosInstance.post('/company/logOut')
       .then((res)=>{
        if(res.status === 200){
-         localStorage.removeItem('companyData')
-         dispatch(clearCompanyData())
+         dispatch(companyLogOut())
          toast.success('Logout sucessfull')
          navigate('/')
        }

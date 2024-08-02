@@ -9,6 +9,8 @@ const jobSchema = new Schema({
    length:{type:String,required:true},
    workingHoursperWeek:{type:String,required:true},
    description:{type:String,required:true},
+   qualification:{type:String,required:true},
+   experienceLevel:{type:String,required:true},
    responsibilities:{type:String,required:true},
    skills:{type:Array,required:true},
    Quiz:{type:Object,default:{}},

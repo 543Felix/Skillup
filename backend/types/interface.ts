@@ -56,6 +56,39 @@ interface tokenData{
     email?:string,
     companyName?:string
 }
+
+interface ComapnyData{
+    _id:string,
+    name?:string
+    companyName?:string 
+    companyType:string
+    noOfEmployes:string
+    email:string
+    phoneNo:string
+    website:string
+    overview:string
+    specialties:string[]
+    certificates:string[]
+    image:string
+    isVerified:boolean
+    isBlocked?:boolean
+   }
+
+interface jobDetails{
+    _id:string,
+    companyId?:string,
+    jobTitle:string,
+    length:string,
+    workingHoursperWeek:string,
+    skills:string[],
+    responsibilities:string,
+    description:string,
+    salary:string,
+    Quiz?:object,
+    createdAt:string,
+    companyDetails:ComapnyData[],
+    status:'open'|'closed'|''
+   } 
 export {
     MySessionData,
     OTP,
@@ -64,5 +97,6 @@ export {
     developerData,
     companyData,
     adminSideListingData,
-    tokenData
+    tokenData,
+    jobDetails
 } 

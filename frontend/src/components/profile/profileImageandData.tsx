@@ -1,6 +1,6 @@
 import React,{useState,useRef,useEffect,Dispatch,SetStateAction} from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faImage,faCircleXmark } from '@fortawesome/free-regular-svg-icons';
+import { faUserCircle,faCircleXmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import uploadImageToCloudinary from '../../../utils/cloudinary';
 import AxiosInstance from '../../../utils/axios';
@@ -27,7 +27,6 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
       }) 
     
     const dispatch = useDispatch()
-    // const navigate = useNavigate()
     const [uploadImageCard, setUploadImageCard] = useState(false);
     const [selectedImage,setSelectedImage] = useState<string|null>(null)
     const imageInputRef = useRef<HTMLInputElement | null>(null)
@@ -172,27 +171,22 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
       return(
           <>
          
-          <div className="col-start-1 bg-slate-500 bg-opacity-[15%] rounded-[15px] grid grid-rows-2 shadow-lg shadow-black">
-              <div className="row-start-1 flex justify-center items-center">
-                {devData && devData.image? <img src={`${devData.image}`} className='h-20 w-20 rounded-full'  onClick={() => {
-                  setUploadImageCard(true);
-                }}/>:
-                <div
-                className="p-4 border-4 border-white rounded-full"
-                onClick={() => {
-                  setUploadImageCard(true);
-                }}
-              >
+          <div className="w-[250px] bg-slate-500 bg-opacity-[15%] rounded-[15px] shadow-lg shadow-black">
+              <div className=" flex flex-col space-y-2 justify-center items-center py-5 text-white">
+                {devData && devData.image? <img src={`${devData.image}`} className='h-20 w-20 rounded-full'/>:
                 <FontAwesomeIcon
-                  className="h-16 text-white"
-                  icon={faImage}
+                  className="h-20 text-white"
+                  icon={faUserCircle}
+                  
                 />
-              </div>
                 }
+                <button className='bg-violet px-5 py-1 font-semibold rounded'  onClick={() => {
+                  setUploadImageCard(true);
+                }}>Edit Profile</button>
                 
               </div>
-              <div className="row-start-2 px-4 py-2 border-t items-center grid grid-rows-3  grid-cols-3">
-                <div className="row-start-1 col-start-3 ml-8 border-2 rounded-full h-6 w-6 text-white  border-white flex justify-center items-center" onClick={()=>setDataCard(true)}> 
+              <div className="relative px-1 py-2 border-t items-center ">
+                <div className="absolute right-3 border-2 rounded-full h-6 w-6 text-white  border-white flex justify-center items-center" onClick={()=>setDataCard(true)}> 
                   <FontAwesomeIcon
                     className="flex items-center h-3  w-3"
                     icon={faPen}
@@ -201,9 +195,9 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
                 {
                   devData&&(
                     <>
-                    <input defaultValue={devData.name} type="text" className="text-lg font-bold  row-start-1 col-span-2 bg-transparent  border-none focus:outline-none focus:ring-0 text-white" readOnly/>
-                  <input defaultValue={devData.email} type="text" className="text-base font-light  row-start-2 col-span-3 bg-transparent border-none focus:outline-none focus:ring-0 text-white " readOnly/>
-                  <input defaultValue={devData.phoneNo} type="text" className="text-base font-light  row-start-3 col-span-2 bg-transparent border-none focus:outline-none focus:ring-0 text-white " readOnly/>
+                    <input defaultValue={devData.name} type="text" className="text-lg font-bold   bg-transparent  border-none focus:outline-none focus:ring-0 text-white" readOnly/>
+                  <input defaultValue={devData.email} type="text" className="text-base font-light   bg-transparent border-none focus:outline-none focus:ring-0 text-white " readOnly/>
+                  <input defaultValue={devData.phoneNo} type="text" className="text-base font-light  bg-transparent border-none focus:outline-none focus:ring-0 text-white " readOnly/>
                     </>
                   )
                 }
@@ -229,9 +223,9 @@ const ProfileCardWithData:React.FC<MyComponentProps>= ({setLoader,role})=>{
       {devData.image ? (
           <img src={`${devData.image}`} alt='selected' className='h-[130px] mt-10 w-[130px] rounded-full' />
         ) : (
-          <div className="border-4 h-[130px] mt-10 w-[130px] flex justify-center items-center border-white rounded-full">
-          <FontAwesomeIcon className="h-20 text-white" icon={faImage} />
-          </div>
+          <div className=" h-[130px] mt-10 w-[130px] flex justify-center items-center ">
+          <FontAwesomeIcon className="h-24 text-white" icon={faUserCircle} />
+           </div>
 
         )}
       </>

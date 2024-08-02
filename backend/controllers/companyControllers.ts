@@ -106,6 +106,14 @@ const logOut =async(req:Request,res:Response)=>{
   
 }
 
+const isBlocked = async(req:Request,res:Response)=>{
+  const {id} = req.params
+  const comapny = await  Company.findOne({_id:new ObjectId(id as string)})
+  if(comapny){
+    res.status(200).json({isBlocked:comapny.isBlocked})
+  }
+}
+
 const profile = async(req:Request,res:Response)=>{
   try {
     const {id} = req.query
@@ -236,11 +244,11 @@ const resendOtp = async(req:Request,res:Response)=>{
 
 
 //chats 
-const getChats = (req:Request,res:Response)=>{
-const {Id} = req.params
-const objectId = new ObjectId(Id)
-Chat.aggregate([{$match:{senderId:objectId}}])
-} 
+// const getChats = (req:Request,res:Response)=>{
+// const {Id} = req.params
+// const objectId = new ObjectId(Id)
+// Chat.aggregate([{$match:{senderId:objectId}}])
+// } 
 export const companyController={
     registation,
     verifyRegistration,
@@ -252,5 +260,6 @@ export const companyController={
     updateAbout,
     uploadCertificates,
     updateSpecialties,
-    resendOtp
+    resendOtp,
+    isBlocked
 }

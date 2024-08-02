@@ -14,7 +14,9 @@ import socket,{connectSocket} from "../../utils/socket";
 import { RootState } from "../store/store";
 import { Messages,Allchats,companyContext,Notification } from "./constants";
 import GroupCall from "../components/metting/GroupCall";
-
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { companyLogOut } from "../store/slice/companySlice";
 
 
 const CompanyRoute: React.FC = () => {
@@ -27,8 +29,12 @@ const CompanyRoute: React.FC = () => {
     return state.companyRegisterData._id;
   });
 
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
+  
   useEffect(() => {
+    console.log('userId = ',userId)
     connectSocket(userId)
    
    
@@ -40,14 +46,29 @@ const CompanyRoute: React.FC = () => {
    
 
     return () => {
-      // socket.off("register")
       socket.off("notification")
       
       socket.disconnect();
     };
   }, [userId]);
 
- 
+   useEffect(()=>{
+AxiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const requestUrl = error.response.config.url;
+      if (requestUrl && requestUrl.startsWith('/company/')) {
+     dispatch(companyLogOut())
+     navigate('/company/login')
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+  })
 
 
   useEffect(() => {

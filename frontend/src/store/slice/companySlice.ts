@@ -8,7 +8,6 @@ interface data{
 
 const data = localStorage.getItem('companyData')
 const parsedData = JSON.parse(data as string)
-
 const initialState :data={
     _id:parsedData?._id??'',
     image:parsedData?.image??'',
@@ -23,7 +22,7 @@ const companyRegisterDataSlice = createSlice({
             state.image = action.payload.image;
             state.name = action.payload.name
           },
-          clearCompanyData: (state) => {
+          companyLogOut: (state) => {
             localStorage.removeItem('companyData')
             state._id = '';
             state.image = '';
@@ -38,5 +37,5 @@ const companyRegisterDataSlice = createSlice({
     }
 })
 
-export const{setCompanyData,clearCompanyData,updateCompanyImage} = companyRegisterDataSlice.actions
+export const{setCompanyData,companyLogOut,updateCompanyImage} = companyRegisterDataSlice.actions
 export default companyRegisterDataSlice.reducer

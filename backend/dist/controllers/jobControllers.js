@@ -24,7 +24,7 @@ const setAppliedJobCount = (id) => __awaiter(void 0, void 0, void 0, function* (
 });
 const createJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { jobTitle, length, workingHoursperWeek, salary, description, responsibilities, skills, createdAt } = req.body;
+        const { jobTitle, length, workingHoursperWeek, salary, description, responsibilities, skills, createdAt, experienceLevel, qualification } = req.body;
         const { id } = req.params;
         const companyId = new mongodb_1.ObjectId(String(id));
         const data = yield jobsSchema_1.default.findOne({ companyId: companyId, jobTitle: jobTitle });
@@ -40,6 +40,8 @@ const createJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 workingHoursperWeek,
                 salary,
                 description,
+                experienceLevel,
+                qualification,
                 responsibilities,
                 createdAt,
                 skills: convertedSkills
@@ -54,13 +56,35 @@ const createJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, pageNo } = req.params;
+        const { id } = req.params;
         const objectId = new mongodb_1.ObjectId(id);
+        const qualification = req.query.qualification;
+        const experienceLevel = req.query.experienceLevel;
+        const search = req.query.search;
+        const sort = req.query.sort;
+        console.log('sort = ', sort);
+        const match = { status: 'open' };
+        const Sort = { jobTitle: 1 };
+        if (qualification && qualification.length > 0) {
+            match.qualification = { $in: qualification };
+        }
+        if (experienceLevel && experienceLevel.length > 0) {
+            match.experienceLevel = { $in: experienceLevel };
+        }
+        if (search && search.trim().length > 0) {
+            match.$or = [
+                { jobTitle: { $regex: search, $options: "i" } },
+                { skills: { $elemMatch: { $regex: search, $options: "i" } } }
+            ];
+        }
+        if (sort) {
+            Sort.jobTitle = Number(sort);
+        }
         const savedjobs = yield developerSchema_1.default.findOne({ _id: objectId }, { savedJobs: 1, _id: 0 });
         if (savedjobs !== (undefined || null)) {
             jobsSchema_1.default.aggregate([
                 {
-                    $match: { status: 'open' }
+                    $match: match
                 },
                 {
                     $lookup: {
@@ -70,17 +94,12 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
                         as: 'companyDetails'
                     }
                 }, {
-                    $facet: {
-                        totalCount: [{ $group: { _id: null, totalCount: { $sum: 1 } } }],
-                        jobs: [{ $skip: (Number(pageNo) - 1) * 4 }, { $limit: 4 }]
-                    }
+                    $sort: Sort !== null && Sort !== void 0 ? Sort : 1
                 }
             ])
                 .then((data) => {
-                const totalCount = data[0].totalCount[0].totalCount > 0 ? data[0].totalCount[0].totalCount : 0;
-                const totalPages = totalCount % 2 === 0 ? Math.floor(totalCount / 4) : Math.floor(totalCount / 4) + 1;
                 const savedJobs = savedjobs === null || savedjobs === void 0 ? void 0 : savedjobs.savedJobs;
-                res.status(200).json({ data: data[0].jobs, savedJobs, totalPages });
+                res.status(200).json({ data, savedJobs });
             });
         }
     }
@@ -121,6 +140,23 @@ const SavedJobs = (req, res) => {
     try {
         const { id } = req.params;
         const objectId = new mongodb_1.ObjectId(id);
+        const qualification = req.query.qualification;
+        const experienceLevel = req.query.experienceLevel;
+        const search = req.query.search;
+        console.log('data = ', { qualification, experienceLevel, search });
+        const match = {};
+        if (qualification && qualification.length > 0) {
+            match["jobs.qualification"] = { $in: qualification };
+        }
+        if (experienceLevel && experienceLevel.length > 0) {
+            match["jobs.experienceLevel"] = { $in: experienceLevel };
+        }
+        if (search && search.trim().length > 0) {
+            match.$or = [
+                { "jobs.jobTitle": { $regex: search, $options: "i" } },
+                { "jobs.skills": { $elemMatch: { $regex: search, $options: "i" } } }
+            ];
+        }
         developerSchema_1.default.aggregate([
             { $match: {
                     _id: objectId,
@@ -148,16 +184,14 @@ const SavedJobs = (req, res) => {
                     as: "jobs"
                 }
             },
-            { $unwind: "$jobs" }, // unwind the jobs array after lookup
+            { $unwind: "$jobs" },
             {
-                $match: {
-                    "jobs.status": "open"
-                }
+                $match: Object.assign({ "jobs.status": "open" }, match)
             },
             { $project: { job: "$jobs", _id: 0 } }
         ]).then((response) => {
             if (response.length === 0) {
-                return res.status(404).json('There are no saved jobs');
+                return res.status(200).json({ data: response });
             }
             const data = response.map((item) => item.job);
             res.status(200).json({ data });
@@ -209,7 +243,7 @@ const editJob = (req, res) => {
     try {
         const { id } = req.params;
         const jobId = new mongodb_1.ObjectId(id);
-        const { jobTitle, length, workingHoursperWeek, description, responsibilities, skills, salary } = req.body;
+        const { jobTitle, length, workingHoursperWeek, description, responsibilities, skills, salary, experienceLevel, qualification } = req.body;
         let Skills;
         if (typeof skills === 'string') {
             Skills = skills.split(',').filter((item) => item.trim().length !== 0);
@@ -224,6 +258,8 @@ const editJob = (req, res) => {
             description,
             responsibilities,
             salary,
+            experienceLevel,
+            qualification,
             skills: Skills
         }).then((data) => {
             res.status(200).json({ message: 'job updation successfull' });
@@ -466,5 +502,5 @@ exports.jobController = {
     changeProposalStatus,
     getSubmitedProposal,
     showQuizAttendedDevelopers,
-    getAppliedJobsCount
+    getAppliedJobsCount,
 };

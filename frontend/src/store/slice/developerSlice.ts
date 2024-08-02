@@ -26,7 +26,7 @@ const developerRegisterDataSlice = createSlice({
             name :  action.payload.name
           }
           },
-          clearDeveloperData: (state) => {
+          devLogOut: (state) => {
             localStorage.removeItem('developerData')
             return{
               ...state,
@@ -44,5 +44,5 @@ const developerRegisterDataSlice = createSlice({
     }
 })
 
-export const{setDeveloperData,clearDeveloperData,updateImage} = developerRegisterDataSlice.actions
+export const{setDeveloperData,devLogOut,updateImage} = developerRegisterDataSlice.actions
 export default developerRegisterDataSlice.reducer

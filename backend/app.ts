@@ -39,7 +39,7 @@ app.use(session({
     cookie: { secure: false } 
 }));
     const corsOptions = {
-        origin: process.env.FrontEndUrl,
+        origin: [process.env.FrontEndUrl as string,'http://localhost:5173'],
         credentials: true, 
         crossOriginOpenerPolicy: 'same-origin',
     };

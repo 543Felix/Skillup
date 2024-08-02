@@ -36,14 +36,14 @@ export interface ChatContextType {
   messages: Messages[];
   setMessages: Dispatch<SetStateAction<Messages[]>>;
   allChats: Allchats[],
-  setAllchats:Dispatch<SetStateAction<Allchats[]>>
+  setAllchats:Dispatch<SetStateAction<Allchats[]>>;
 }
 
 export const defaultChatContextValue: ChatContextType = {
   messages: [],
   setMessages: () => {},
   allChats:[],
-  setAllchats:()=>{}
+  setAllchats:()=>{},
 };
 
 export const devcontext = createContext<ChatContextType>(defaultChatContextValue);

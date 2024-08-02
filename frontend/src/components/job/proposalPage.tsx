@@ -25,7 +25,7 @@ const ProposalPage:React.FC<Props> = ({jobId,hideProposalPage,score,displayJobCo
             toast.error('Ther should be at least 100 characters in the cover leter')
             return 
         }
-     AxiosInstance.post(`/job/sendProposal/${jobId}`,{coverLetter,developerId,score})
+     AxiosInstance.post(`/dev/sendProposal/${jobId}`,{coverLetter,developerId,score})
      .then((res)=>{
         if(res.data.Data){
             const {companyId,jobTitle} =res.data.Data[0]

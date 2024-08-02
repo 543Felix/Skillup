@@ -143,7 +143,7 @@ const CompanyData :React.FC<MyComponentProps> =({setLoader})=>{
               
             </div>
         )}
-        <div className='col-start-2 col-span-3 ml-2 bg-slate-500 bg-opacity-[15%] shadow-lg shadow-black rounded-[10px] py-5 px-12 z-0'> 
+        <div className='w-full ml-2 bg-slate-500 bg-opacity-[15%] shadow-lg shadow-black rounded-[10px] py-5 px-12 '> 
         <div className='relative  flex flex-col'>
            <FontAwesomeIcon icon={faPenToSquare} className='absolute text-white top-0 right-0' onClick={()=>setEditPage(true)} />
         <div className='flex flex-row justify-between'>

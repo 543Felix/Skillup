@@ -23,6 +23,7 @@ const stripe_1 = __importDefault(require("stripe"));
 const node_cron_1 = __importDefault(require("node-cron"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+const cloudinary_1 = __importDefault(require("../helper/cloudinary"));
 const stripe = new stripe_1.default(process.env.stripe_Secret_Key);
 const Registration = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { firstName, lastName, email, phoneNo, password } = req.body;
@@ -166,6 +167,31 @@ const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json(error);
     }
 });
+const resendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const data = req.session.developersessionData;
+        const cookieData = req.cookies.registrationData;
+        if (data) {
+            let otp = registationHelper_1.registerHelper.generateOtp();
+            console.log('otp = ', otp);
+            yield new otpSchema_1.default({
+                otp: otp,
+                name: data.name
+            }).save();
+            registationHelper_1.registerHelper.sendOTP(data.email, otp).then(() => {
+                res.status(200).json({ message: "check your mail for otp" });
+            });
+        }
+    }
+    catch (error) {
+        res.status(500).json(error);
+    }
+});
+const isBlocked = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const developer = yield developerSchema_1.default.findOne({ _id: new mongodb_1.ObjectId(id) });
+    res.status(200).json({ isBlocked: developer === null || developer === void 0 ? void 0 : developer.isBlocked });
+});
 const logOut = (req, res) => {
     try {
         res.clearCookie('accessToken');
@@ -176,6 +202,7 @@ const logOut = (req, res) => {
         res.status(500).json(error);
     }
 };
+// Profile 
 const uploadProfilePic = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.query;
     const url = req.body.url;
@@ -224,11 +251,11 @@ const updateProfileData = (req, res) => __awaiter(void 0, void 0, void 0, functi
 const updateRoleandDescription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.query;
-        const { role, description } = req.body.data;
+        const { role, description, qualification } = req.body.data;
         const objectId = new mongodb_1.ObjectId(id);
-        const data = yield developerSchema_1.default.findOneAndUpdate({ _id: objectId }, { role: role, description: description });
+        const data = yield developerSchema_1.default.findOneAndUpdate({ _id: objectId }, { role: role, description: description, qualification: qualification });
         if (data) {
-            return res.status(200).json({ message: 'role and describtion updated', data });
+            return res.status(200).json({ message: 'role and describtion updated' });
         }
         else {
             return res.status(404).json({ message: 'updataion failed' });
@@ -255,26 +282,113 @@ const updateSkills = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(500).json(error);
     }
 });
-const resendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const data = req.session.developersessionData;
-        const cookieData = req.cookies.registrationData;
-        if (data) {
-            let otp = registationHelper_1.registerHelper.generateOtp();
-            console.log('otp = ', otp);
-            yield new otpSchema_1.default({
-                otp: otp,
-                name: data.name
-            }).save();
-            registationHelper_1.registerHelper.sendOTP(data.email, otp).then(() => {
-                res.status(200).json({ message: "check your mail for otp" });
-            });
+const getWorkExperience = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    developerSchema_1.default.aggregate([
+        { $match: { _id: new mongodb_1.ObjectId(id) } },
+        {
+            $addFields: {
+                workExperience: {
+                    $map: {
+                        input: {
+                            $sortArray: {
+                                input: "$workExperience",
+                                sortBy: {
+                                    startDate: -1
+                                }
+                            }
+                        },
+                        as: "we",
+                        in: "$$we"
+                    }
+                }
+            }
+        }, {
+            $project: { _id: 0, workExperience: 1 }
         }
-    }
-    catch (error) {
-        res.status(500).json(error);
+    ])
+        .then((data) => {
+        res.status(200).json({ workExperience: data[0].workExperience });
+    });
+});
+const addWorkExpirence = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, workData } = req.body;
+    const { companyName, role, startDate, endDate } = workData;
+    developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(id) }, {
+        $push: { workExperience: { companyName, role, startDate, endDate } }
+    }, {
+        new: true
+    }).then((data) => {
+        res.status(200).json({ data });
+    }).catch(() => {
+        res.status(404).json({ message: 'user not found' });
+    });
+});
+const deleteWorkExperience = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, workId } = req.params;
+    developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(id) }, {
+        $pull: { workExperience: { _id: new mongodb_1.ObjectId(workId) } }
+    }).then(() => {
+        res.status(200).json({ messsage: 'work experience deleted successfully' });
+    })
+        .catch(() => {
+        res.status(500).json({ messsage: 'An error occured while updating' });
+    });
+});
+const updateWorkExperience = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, workData } = req.body;
+    let data = yield developerSchema_1.default.updateOne({ _id: new mongodb_1.ObjectId(id), "workExperience._id": new mongodb_1.ObjectId(workData._id) }, { $set: { "workExperience.$": workData } });
+    if (data) {
+        res.status(200).json({ message: 'successfully updated your  workExperience' });
     }
 });
+const uploadCertificates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, url, certificateName } = req.body;
+    console.log('data = ', { id, url, certificateName });
+    developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(id) }, { $addToSet: { certificates: { url, certificateName } } })
+        .then((data) => {
+        console.log('updated Data = ', data);
+        res.status(200).json({ message: 'certificate Succesfully updated' });
+    })
+        .catch(() => {
+        res.status(500).json({ message: 'An unexpected error occured while updating data' });
+    });
+});
+const deleteCertificate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, url, resourcetype } = req.body;
+    console.log('data = ', { id, url, resourcetype });
+    const data = yield (0, cloudinary_1.default)(url, resourcetype);
+    console.log('data = ', data);
+    if (data.result === 'ok') {
+        developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(id) }, {
+            $pull: { certificates: { url: url } }
+        }).then((data) => {
+            console.log('successfully updated  =  ', data);
+            res.status(200).json({ message: 'certificate sucessfully deleted' });
+        }).catch((error) => {
+            console.log('An error occured while editing data = ', error);
+        });
+    }
+});
+const uploadResume = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, url } = req.body;
+    console.log('data on upload Resume = ', { id, url });
+    developerSchema_1.default.findOneAndUpdate({ _id: new mongodb_1.ObjectId(id) }, { $set: { resume: url } })
+        .then(() => {
+        res.status(200).json({ message: 'resume uploaded successfully' });
+    }).catch(() => {
+        res.status(500).json({ message: 'An unexpected error occured while updating resume' });
+    });
+});
+const getResume = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    let data = yield developerSchema_1.default.findOne({ _id: new mongodb_1.ObjectId(id) });
+    if (data) {
+        const { resume } = data;
+        res.status(200).json({ resume });
+    }
+});
+//  Subscription
 const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { subscriptionType, devId } = req.body;
@@ -352,7 +466,16 @@ exports.developerController = {
     updateProfileData,
     updateRoleandDescription,
     updateSkills,
+    addWorkExpirence,
+    getWorkExperience,
+    deleteWorkExperience,
+    updateWorkExperience,
+    uploadCertificates,
+    deleteCertificate,
+    uploadResume,
+    getResume,
     resendOtp,
     registerWithGoogle,
     HandleSubscription,
+    isBlocked,
 };

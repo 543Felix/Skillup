@@ -1,8 +1,8 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes,Outlet } from "react-router-dom";
 import DevHeader from "../components/headerandFooter/devheader";
 // import Footer from "../juniorDevloper/footter";
-import DeveloperHome from "../pages/developer/developerHome";
+// import DeveloperHome from "../pages/developer/developerHome";
 import Loader from "../pages/loader";
 import Chat from "../components/chat/allChats";
 import socket,{connectSocket} from "../../utils/socket";
@@ -10,8 +10,13 @@ import AxiosInstance from "../../utils/axios";
 import PageNotFound from "../pages/404";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
-// import { convertToDate } from "../helperFunctions";
 import GroupCall from "../components/metting/GroupCall";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { devLogOut } from "../store/slice/developerSlice";
+import MyPDFViewer from "../components/profile/pdfViwer";
+// import JobData from "../components/job/jobData";
+
 
 import { Notification as constanNotification } from "./constants";
 
@@ -34,13 +39,16 @@ import MakePayment from "../components/payment/stripe";
 
 
 
+
 const DeveloperRoute: React.FC = () => {
   const [notifications, setNotifications] = useState<constanNotification[]>([]);
   const [data, setData] = useState([]);
   const [messages, setMessages] = useState<Messages[]>([]);
   const [allChats,setAllchats] = useState<Allchats[]>([])
   const userId = useSelector((state: RootState) => state.developerRegisterData._id);
-
+  
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
     useEffect(() => {
     connectSocket(userId)
 
@@ -56,9 +64,23 @@ const DeveloperRoute: React.FC = () => {
     };
   }, [userId]);
   
-  useEffect(()=>{
-    
-  },[userId])
+ useEffect(()=>{
+AxiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const requestUrl = error.response.config.url;
+      if (requestUrl && requestUrl.startsWith('/dev/')) {
+     dispatch(devLogOut())
+     navigate('/dev/login')
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+  })
  
 
 
@@ -76,7 +98,7 @@ const DeveloperRoute: React.FC = () => {
       <div className="flex flex-grow py-28 px-28 space-x-24">
         <div className="flex-grow">
           <Routes>
-            <Route path="/" element={<DeveloperHome />} />
+            <Route path="/" element={<Displayjob />} />
 
             <Route
               path="/profile"
@@ -89,11 +111,15 @@ const DeveloperRoute: React.FC = () => {
             <Route
               path="/job"
               element={
-                <Suspense fallback={<Loader />}>
-                  <Displayjob />
-                </Suspense>
+                <Outlet/>
               }
-            />
+            >
+              <Route index element={<Suspense fallback={<Loader />}>
+                  <Displayjob />
+                </Suspense>} /> 
+                {/* <Route path=':id' element={<JobData/>}/> */}
+
+            </Route>
             <Route
               path="/savedJobs"
               element={
@@ -117,11 +143,11 @@ const DeveloperRoute: React.FC = () => {
                   <Chat role="developers" />
               }
             />
+            <Route path='/pdfView' element={<MyPDFViewer/>}/>
             <Route path="/pricingPage" element={<MakePayment/>}/>
               <Route path="/payment-success" element={<Paymentsucess/>}/>
               <Route path="/payment-error" element={<Paymenterror/>}/>
          <Route path="/meeting" element={<GroupCall role="dev" />}/>
-         {/* <Route path="/newMeeting/:roomId" element={<JitsiMain role="dev" />} /> */}
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </div>

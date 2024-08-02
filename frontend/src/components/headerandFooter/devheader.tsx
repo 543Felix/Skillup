@@ -1,4 +1,4 @@
-import React ,{useState,Dispatch,SetStateAction} from "react";
+import React ,{useState,Dispatch,SetStateAction, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -11,9 +11,11 @@ import { faAngleUp, faBell,faAngleDown } from "@fortawesome/free-solid-svg-icons
 import AxiosInstance from '../../../utils/axios'
 import { useSelector,useDispatch } from "react-redux";
 import { RootState } from "../../store/store";
-import { clearDeveloperData } from "../../store/slice/developerSlice";
+import { devLogOut } from "../../store/slice/developerSlice";
 import {Notification as ConstantNotification } from '../../Routes/constants'
 import { convertToLocalTime } from "../../helperFunctions";  
+
+
 
 interface Props{
   notifications:ConstantNotification[],
@@ -28,13 +30,21 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
   const dispatch = useDispatch()
   const [expanded, setExpanded] = useState(false);
   const [showDropdown,setShowDropdown] = useState(false)
-//  const [data,setData] = useState([])
 
  const {image,_id} =  useSelector((state:RootState)=>{
     return state.developerRegisterData
   })
     
-
+ useEffect(()=>{
+  const handleOnClick = ()=>{
+    console.log('clicked')
+    setShowDropdown(false)
+  }
+  window.addEventListener('click',handleOnClick)
+  return ()=>{
+    window.removeEventListener('click',handleOnClick)
+  }
+ },[])
    
   
 
@@ -54,8 +64,7 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
   function logOut(){
     AxiosInstance.post('/dev/logOut',{}).then((res)=>{
       if(res.status === 200){
-        localStorage.removeItem('developerData')
-        dispatch(clearDeveloperData())
+        dispatch(devLogOut())
         toast.success('Logout sucessfull')
       }
       navigate('/')
@@ -64,12 +73,16 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
     })
     
   }
-
+  
+  const handleDropDown = (e:React.MouseEvent<HTMLDivElement>)=>{
+     e.stopPropagation()
+     setShowDropdown(true)
+  }
   return (
     <>
-      <header className="fixed top-0 w-full p-4 mb-2 bg-black  border-b-2 border-violet text-white z-10">
-        <div className="container flex justify-between h-8 mx-auto px-10">
-            <div  className="flex items-center p-2" >
+      <header className="fixed top-0 w-full p-4  mb-2 bg-black  border-b-2 border-violet text-white z-10">
+        <div className="container flex  justify-between h-8 mx-auto ">
+            <div  className="flex items-center p-2 " >
             <Link to='/dev/'>
               <img className="h-[55px]" src="/developer/logo.png" alt="" />
             </Link>
@@ -83,7 +96,7 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
             </li>
             <li className="flex items-center px-4 -mb-1 border-b-2">
               
-             <Link to={'/dev/proposals'}> Proposals</Link>  
+             <Link to={'/dev/proposals'}> Applied jobs</Link>  
             </li>
             <li className="flex items-center px-4 -mb-1 border-b-2">
               <Link to={'/dev/chats'}>chats</Link>
@@ -93,7 +106,7 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
                <Link to={'/dev/meeting'}>Meetings</Link> 
             </li>
           </ul>  
-          <div className="items-center flex-shrink-0 hidden lg:flex ">
+          <div className="items-center space-x-3 flex-shrink-0  flex ">
             <div>
                 <span className="relative inline-block">
            <FontAwesomeIcon className="text-white h-[27px]" icon={faBell} onClick={()=>setExpanded(!expanded)} />
@@ -102,32 +115,14 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
             
 
             </div>
-            {/* <Link to='/dev/profile'> */}
-            <div onMouseEnter={()=>setShowDropdown(true)} onMouseLeave={()=>setShowDropdown(false)}>
+            <div onClick={handleDropDown} >
  {image ? (
-  <img src={image}  className="h-[35px] m-4" alt="User Profile" />
+  <img src={image}  className="h-[35px] " alt="User Profile" />
 ) : (
-  <FontAwesomeIcon className="self-center px-8 py-3 h-10 w-10" icon={faUserCircle} />
+  <FontAwesomeIcon className=" h-10 w-10" icon={faUserCircle} />
 )}
             </div>
-           
-           
-            {/* </Link> */}
-                {showDropdown && (
-        <div className="absolute right-3 mt-[188px] w-32 bg-black text-white rounded shadow-lg" onMouseEnter={()=>setShowDropdown(true)} onMouseLeave={()=>setShowDropdown(false)}>
-          <Link to="/dev/profile" className="block px-4 py-2  hover:bg-white hover:text-black">
-            Profile
-          </Link>
-          <Link to="/dev/pricingPage" className="block px-4 py-2  hover:bg-white hover:text-black">
-            Pricing
-          </Link>
-          <Link to="" onClick={logOut} className="block px-4 py-2  hover:bg-white hover:text-black">
-            Logout
-          </Link>
-        </div>
-      )}
-          </div>
-          <button className="p-4 md:hidden">
+            <button className=" lg:hidden">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -143,6 +138,23 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
               ></path>
             </svg>
           </button>
+           
+            {/* </Link> */}
+                {showDropdown && (
+        <div className="absolute right-3 mt-[188px] w-32 bg-black text-white rounded shadow-lg">
+          <Link to="/dev/profile" className="block px-4 py-2  hover:bg-white hover:text-black">
+            Profile
+          </Link>
+          <Link to="/dev/pricingPage" className="block px-4 py-2  hover:bg-white hover:text-black">
+            Pricing
+          </Link>
+          <Link to="" onClick={logOut} className="block px-4 py-2  hover:bg-white hover:text-black">
+            Logout
+          </Link>
+        </div>
+      )}
+          </div>
+         
         </div>
       </header>
      <div
