@@ -1,15 +1,11 @@
 import { ObjectId } from "mongodb"
 import Job from "../models/jobsSchema"
 import { Request,Response } from "express"
-import Slot from '../models/slotsSchema'
 import Developer from "../models/developerSchema"
 import Proposal from "../models/proposalSchema"
 
 
-interface Slot{
-   date: Date,
-   time: string
-}
+
 
 
 
@@ -81,8 +77,12 @@ if(sort){
    Sort.jobTitle = Number(sort)
 }
 
-      const savedjobs = await Developer.findOne({ _id: objectId },{savedJobs:1,_id:0});
-      if(savedjobs!==(undefined||null)){
+      const devData = await Developer.findOne({ _id: objectId },{savedJobs:1,appliedJobs:1,_id:0});
+      if (devData?.appliedJobs && devData.appliedJobs.length > 0) {
+         match._id = { $nin: devData.appliedJobs };
+       }
+       
+      if(devData!==(undefined||null)){
          Job.aggregate([
              {
             $match: match
@@ -99,7 +99,7 @@ if(sort){
             } 
           ],{ collation: { locale: "en", strength: 2 } })
           .then((data)=>{
-            const savedJobs  = savedjobs?.savedJobs
+            const savedJobs  = devData?.savedJobs
             res.status(200).json({data,savedJobs})
            
          })
@@ -255,6 +255,23 @@ const getJob = (req:Request,res:Response)=>{
    
 
 }
+const getIndividualJob = (req:Request,res:Response)=>{
+   const {id} = req.params
+   Job.aggregate([
+      {
+         $match:{_id: new ObjectId(id as string)}
+      }, {
+         $lookup: {
+           from: 'companies',
+           localField: 'companyId',
+           foreignField: '_id',
+           as: 'companyDetails'
+         }
+       }
+   ]).then((data)=>{
+      res.status(200).json({data})
+   })
+}
 const editJob =(req:Request,res:Response)=>{
    try {
       const {id} = req.params
@@ -287,7 +304,7 @@ const editJob =(req:Request,res:Response)=>{
 
 const sendProposal = async(req:Request,res:Response)=>{
    try {
-      const {developerId,coverLetter,score} = req.body
+      const {developerId,coverLetter,score,resume} = req.body
       const {jobId} = req.params
       const DeveloperId = new ObjectId(developerId as string)
       const JobId = new ObjectId(jobId as string)
@@ -299,8 +316,10 @@ const sendProposal = async(req:Request,res:Response)=>{
                jobId,
                developerId,
                coverLetter,
+               resume,
                score
             }).save().then(async (data)=>{
+               await Developer.updateOne({_id:DeveloperId},{$addToSet:{appliedJobs:JobId}})
                let Data = await Job.aggregate([
                   {
                      $match:{
@@ -351,11 +370,12 @@ const createQuiz = async (req:Request,res:Response)=>{
    }
    
 }
-const getQuiz = (req:Request,res:Response)=>{
+const getQuiz = async(req:Request,res:Response)=>{
    try {
       const {jobId,devId} = req.params
    const objectId =  new ObjectId(String(jobId))
-   Job.findOneAndUpdate({_id:objectId},{$addToSet:{quizAttendedDevs:devId}},{new:true})
+   await Developer.updateOne({_id: new ObjectId(devId as string)},{$addToSet:{appliedJobs:objectId}})
+   Job.findOne({_id:objectId})
    .then((response)=>{
        const Quiz = response?.Quiz
       return res.status(200).json({Quiz})
@@ -366,20 +386,7 @@ const getQuiz = (req:Request,res:Response)=>{
    
 }
 
-const getSlots = (req:Request,res:Response)=>{
-   try {
-      const {id} = req.query
-   const objectId =  new ObjectId(String(id))
-   Slot.aggregate([{$match:{job_id:objectId}}]).then((data)=>{
-      res.status(200).json({data})
-   }).catch(()=>{
-      res.status(404).json({message:'invalidCredentials'})
-   })
-   } catch (error) {
-      res.status(500).json({message:'Internal server error'})
-   }
-   
-}
+
 
 const setJobStatus =(req:Request,res:Response)=>{
    try {
@@ -415,11 +422,20 @@ const getAppliedDevelopers = (req:Request,res:Response)=>{
             {
                 $project: {
                     _id: 0,
-                    jobId:0,
-                    developerId:0,
-                    __v:0
+                    developerId:1,
+                    resume:1,
+                    createdAt:1,
+                    status:1,
+                    coverLetter:1,
+                    name:'$developer.name',
+                    email:'$developer.email',
+                    image:'$developer.image'
+
                 }
-            }
+            },
+            {
+               $sort: { createdAt: -1 } // Sort by createdAt in descending order
+           }
    ]).then((data)=>{
       res.status(200).json({data})
    }).catch(()=>{
@@ -446,39 +462,51 @@ const getSubmitedProposal = (req:Request,res:Response)=>{
 const {devId} = req.params
 const objectId = new ObjectId(devId)
 Proposal.aggregate([
-  {$match:{developerId:objectId}},
    {
-        $lookup: {
-          from: 'jobs', // Collection name for jobs
-          localField: 'jobId',
-          foreignField: '_id',
-          as: 'job'
-        }
-      },
-      {
-        $unwind: '$job'
-      },
-      {$project:{_id:0,jobId:0,developerId:0,__v:0}}
-]).then((data)=>{
+     $match: { developerId: objectId }
+   },
+   {
+     $lookup: {
+       from: 'jobs', // Collection name for jobs
+       localField: 'jobId',
+       foreignField: '_id',
+       as: 'job'
+     }
+   },
+   {
+     $unwind: '$job'
+   },
+   {
+     $lookup: {
+       from: 'companies', // Collection name for companies
+       localField: 'job.companyId',
+       foreignField: '_id',
+       as: 'company'
+     }
+   },
+   {
+     $unwind: '$company'
+   },
+   {
+      $sort: { 'createdAt': -1 } 
+   },
+   {
+     $project: {
+       _id: 1,
+       jobId: 1,
+       jobName:'$job.jobTitle',
+       createdAt:1,
+       resume:1,
+       coverLetter:1,
+       status:1,
+       companyName:'$company.companyName',
+     }
+   }
+ ]).then((data)=>{
 res.status(200).json({data})
 })
 }
-const showQuizAttendedDevelopers = (req:Request,res:Response)=>{
-   const {jobId,devId} = req.params
-   const JobID = new ObjectId(jobId as string)
-   const DevID = new ObjectId(devId as string)
-    Job.findOne({
-            _id: JobID,
-            quizAttendedDevs: { $elemMatch: { $eq: DevID } }
-        }).then((data)=>{
-         if(data?.quizAttendedDevs.includes(DevID)){
-           res.status(401).json({message:'you have already attended the quiz'})
-         }else{
-            res.status(200).json({message:''})
-         }
-         
-        })
-}
+
 
 const getAppliedJobsCount = (req:Request,res:Response)=>{
    const {devId} = req.params
@@ -508,13 +536,13 @@ const getAppliedJobsCount = (req:Request,res:Response)=>{
 
 
 
+
 export const jobController={
    JobsToDisplayDev,
    createJob,
    getQuiz,
    companyJobs,
    setJobStatus,
-   getSlots,
    getJob,
    saveJob,
    unSaveJob,
@@ -526,6 +554,6 @@ export const jobController={
    getAppliedDevelopers,
    changeProposalStatus,
    getSubmitedProposal,
-   showQuizAttendedDevelopers,
+   getIndividualJob,
    getAppliedJobsCount,
 } 

@@ -6,12 +6,12 @@ import bcrypt from "bcrypt";
 import {registerHelper} from '../helper/registationHelper'
 import  Otp from '../models/otpSchema'
 import Stripe from 'stripe'
-// import Proposal from "../models/proposalSchema";
+// import Meeting from '../models/meetingShema'
 import cron from 'node-cron'
 import dotenv from 'dotenv'
 dotenv.config()
 import deleteFile from '../helper/cloudinary'
-
+import Company from "../models/companySchema";
 
 const stripe = new Stripe(process.env.stripe_Secret_Key as string)
 
@@ -410,9 +410,23 @@ const uploadCertificates = async(req:Request,res:Response)=>{
  }
  }
 
+ const getDevelopers =  async(req:Request,res:Response)=>{
+  Developer.aggregate([
+    {
+      $match: {
+        role: { $exists: true, $ne: "" },               
+        description: { $exists: true, $ne: "" },        
+        skills: { $exists: true, $not: { $size: 0 } }   
+      }
+    },{$project:{name:1,role:1,image:1}}
+  ])
+  .then((data)=>{
+    res.status(200).json(data)
+  })
+ }
 
 
-//  Subscription
+//  Subscription 
 
 const HandleSubscription = async(req:Request,res:Response)=>{
   try {
@@ -433,8 +447,8 @@ const session = await stripe.checkout.sessions.create({
     },
   ],
   mode: 'payment',
-  success_url: 'http://localhost:5173/dev/payment-success',
-  cancel_url: 'http://localhost:5173/dev/payment-error',
+  success_url: `${process.env.FrontEndUrl}/dev/payment-success`,
+  cancel_url: `${process.env.FrontEndUrl}/dev/payment-error`,
 }); 
 
  if(session.id){
@@ -478,6 +492,9 @@ const session = await stripe.checkout.sessions.create({
 }
 
 
+
+
+
 const checkSubscription = async()=>{
   const todaysDate = new Date()
   console.log('function is inwoked')
@@ -503,6 +520,8 @@ cron.schedule('0 0 * * * ',()=>{
 })
 
 
+
+
 export const developerController =  {
   Registration,
   verifyRegistration,
@@ -525,5 +544,5 @@ export const developerController =  {
   registerWithGoogle,
   HandleSubscription,
   isBlocked,
-  
+  getDevelopers
 } 

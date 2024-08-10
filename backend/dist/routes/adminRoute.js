@@ -15,5 +15,8 @@ adminRoute.patch('/companies/block', adminControllers_1.adminController.blockCom
 adminRoute.patch('/companies/unBlock', adminControllers_1.adminController.unblockCompany);
 adminRoute.patch('/companies/verify', adminControllers_1.adminController.verifyCompany);
 adminRoute.patch('/companies/unverify', adminControllers_1.adminController.unverifyCompany);
+adminRoute.get('/dashBoard', adminControllers_1.adminController.getDetailsOnDashboard);
+adminRoute.get('/chartData', adminControllers_1.adminController.ChartData);
+// adminRoute.get('/companyChart',adminController.developerChartData)
 adminRoute.post('/logout', adminControllers_1.adminController.logOut);
 exports.default = adminRoute;

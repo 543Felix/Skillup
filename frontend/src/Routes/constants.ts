@@ -32,18 +32,30 @@ export interface Allchats{
   createdAt:string
 }
 
+export interface UnRead{
+  sender:string;
+  count:number
+}
+
+
 export interface ChatContextType {
   messages: Messages[];
   setMessages: Dispatch<SetStateAction<Messages[]>>;
   allChats: Allchats[],
   setAllchats:Dispatch<SetStateAction<Allchats[]>>;
+  unreadMesCount:UnRead[];
+  setUnReadMesCount:Dispatch<SetStateAction<UnRead[]>>;
 }
+
+
 
 export const defaultChatContextValue: ChatContextType = {
   messages: [],
   setMessages: () => {},
   allChats:[],
   setAllchats:()=>{},
+  unreadMesCount:[],
+  setUnReadMesCount:()=>{}
 };
 
 export const devcontext = createContext<ChatContextType>(defaultChatContextValue);

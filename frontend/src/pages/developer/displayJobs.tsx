@@ -7,13 +7,13 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import { faBookmark } from "@fortawesome/free-solid-svg-icons";
 import AxiosInstance from "../../../utils/axios";
-import JobData from "../../components/job/jobData";
 import { jobDetails } from "../../../types/interface";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import Loader from "../loader";
 import queryString from "query-string";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   jobType?: string | undefined;
@@ -33,46 +33,22 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
   const id = useSelector((state: RootState) => {
     return state?.developerRegisterData._id;
   });
+  const navigate = useNavigate()
   const isInitialRender = useRef(true);
   const [jobs, setJobs] = useState<jobDetails[]>([]);
   const [saveOrUnsave, setSaveOrUnsave] = useState(0);
-  const [showJob, setShowJob] = useState(false);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [loader, setLoader] = useState<boolean>(false);
-  const [animation, setAnimation] = useState(
-    showJob ? "animate-zoomOut" : "animate-zoomIn"
-  );
-  const [jobData, setJobData] = useState<jobDetails>({
-    _id: "",
-    companyId: "",
-    jobTitle: "",
-    length: "",
-    workingHoursperWeek: "",
-    salary: "",
-    description: "",
-    responsibilities: "",
-    qualification: "",
-    experienceLevel: "",
-    skills: [],
-    Quiz: {},
-    createdAt: "",
-    companyDetails: [],
-    status: "open",
-  });
+  
+ 
   const [filter, setFilter] = useState<Filter>({
     qualification: [],
     experienceLevel: [],
     sort:''
   });
 
-  const showJobComponent = (
-    e: React.MouseEvent<HTMLDivElement>,
-    data: jobDetails
-  ) => {
-    e.preventDefault();
-    setAnimation("animate-zoomOut");
-    setShowJob(true);
-    setJobData(data);
+  const showJobComponent = (id : string)=>{
+    navigate(`/dev/job/${id}`)
   };
 
   useEffect(() => {
@@ -240,23 +216,16 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
       </div>
       <div className="  space-x-3">
         <div className="">
-          {showJob ? (
-            <JobData
-              data={jobData}
-              showData={showJob}
-              setParentAnimation={setAnimation}
-              setShowData={setShowJob}
-            />
-          ) : jobs.length > 0 ? (
+          { jobs.length > 0 ? (
             <>
               <div className="flex ">
                 <div className={`pl-[235px]`}>
                   {jobs.length > 0 &&
                     jobs.map(job => (
                       <div
-                        className={` bg-opacity-[15%] rounded-[15px] shadow-custom-black h-[290px] w-[730px]  mb-[20px] px-5 py-3 text-white transition-transform duration-75 ${animation}`}
+                        className={` bg-opacity-[15%] rounded-[15px] shadow-custom-black h-[290px] w-[730px]  mb-[20px] px-5 py-3 text-white transition-transform duration-75 `}
                         key={job._id}
-                        onClick={e => showJobComponent(e, job)}
+                        onClick={() => showJobComponent(job._id)}
                       >
                         <div className="flex justify-between">
                           <h1 className="text-2xl font-bold">{job.jobTitle}</h1>

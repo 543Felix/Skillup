@@ -14,6 +14,10 @@ adminRoute.patch('/companies/unBlock',adminController.unblockCompany)
 adminRoute.patch('/companies/verify',adminController.verifyCompany)
 adminRoute.patch('/companies/unverify',adminController.unverifyCompany)
 
+adminRoute.get('/dashBoard',adminController.getDetailsOnDashboard)
+adminRoute.get('/chartData',adminController.ChartData)
+// adminRoute.get('/companyChart',adminController.developerChartData)
+
 
 adminRoute.post('/logout',adminController.logOut)
 

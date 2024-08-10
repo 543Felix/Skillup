@@ -41,14 +41,14 @@ const DeveloperSchema = new mongoose_1.Schema({
     qualification: { type: String },
     skills: { type: [String] },
     savedJobs: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Job' }],
-    // completedWorks: { type: [String] },
     subscriptions: { type: Array },
     certificates: { type: Array },
     workExperience: { type: [workExperienceSchema] },
     resume: { type: String },
     appliedJobsCount: { type: Number, default: 0 },
+    appliedJobs: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Job' }],
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
-});
+}, { timestamps: true });
 const Developer = mongoose_1.default.model('Developer', DeveloperSchema);
 exports.default = Developer;

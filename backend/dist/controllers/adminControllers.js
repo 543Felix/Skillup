@@ -19,6 +19,7 @@ const companySchema_1 = __importDefault(require("../models/companySchema"));
 const jobsSchema_1 = __importDefault(require("../models/jobsSchema"));
 const mongodb_1 = require("mongodb");
 const registationHelper_1 = require("../helper/registationHelper");
+const moment_1 = __importDefault(require("moment"));
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { name, password } = req.body;
     let data = yield adminSchema_1.default.findOne({ name: name, password: password });
@@ -146,6 +147,75 @@ const getDetailsOnDashboard = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }, 0);
     res.status(200).json({ DeveloperCount, CompaniesCount, jobsCount, totalIncome });
 });
+const ChartData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { period, role } = req.query;
+    let matchCondition = {};
+    let groupByCondition = { _id: null, count: { $sum: 1 } };
+    let dateRange = {};
+    switch (period) {
+        case 'last7days':
+            dateRange = {
+                $gte: (0, moment_1.default)().subtract(7, 'days').startOf('day').toDate(),
+                $lt: (0, moment_1.default)().endOf('day').toDate(),
+            };
+            break;
+        case 'last30days':
+            dateRange = {
+                $gte: (0, moment_1.default)().subtract(30, 'days').startOf('day').toDate(),
+                $lt: (0, moment_1.default)().endOf('day').toDate(),
+            };
+            break;
+        case 'last90days':
+            dateRange = {
+                $gte: (0, moment_1.default)().subtract(90, 'days').startOf('day').toDate(),
+                $lt: (0, moment_1.default)().endOf('day').toDate(),
+            };
+            break;
+        case 'allTime':
+            dateRange = null;
+            break;
+        default:
+            return res.status(400).send('Invalid period');
+    }
+    if (dateRange && (period === 'last30days' || period === 'last90days')) {
+        matchCondition.createdAt = dateRange;
+        groupByCondition._id = {
+            $subtract: [
+                { $subtract: ["$createdAt", new Date(0)] },
+                { $mod: [{ $subtract: ["$createdAt", new Date(0)] }, 1000 * 60 * 60 * 24 * 7] }
+            ]
+        };
+    }
+    else if (dateRange) {
+        matchCondition.createdAt = dateRange;
+        groupByCondition._id = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+    }
+    else {
+        groupByCondition._id = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+    }
+    try {
+        if (role === 'dev') {
+            const data = yield developerSchema_1.default.aggregate([
+                { $match: matchCondition },
+                { $group: groupByCondition },
+                { $sort: { _id: 1 } },
+            ]);
+            return res.json(data);
+        }
+        else if (role === 'companies') {
+            const data = yield companySchema_1.default.aggregate([
+                { $match: matchCondition },
+                { $group: groupByCondition },
+                { $sort: { _id: 1 } },
+            ]);
+            return res.json(data);
+        }
+    }
+    catch (error) {
+        console.error('Error fetching chart data:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 exports.adminController = {
     login,
     showDevelopers,
@@ -157,5 +227,6 @@ exports.adminController = {
     logOut,
     verifyCompany,
     unverifyCompany,
-    getDetailsOnDashboard
+    getDetailsOnDashboard,
+    ChartData
 };

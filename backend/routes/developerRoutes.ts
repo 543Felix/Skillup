@@ -34,31 +34,30 @@ developerRoute.patch('/deleteCertificate',developerController.deleteCertificate)
 developerRoute.patch('/uploadResume',developerController.uploadResume)
 developerRoute.get('/resume/:id',developerController.getResume)
 
-// developerRoute.get('/qualification/:id',developerController.getQualification)
 
-//job 
+//allDevelopers
+
+developerRoute.get('/allDevelopers')
 
 
 
 // Subscription
 
 developerRoute.post('/create-checkout-session',devAuthorization,developerController.HandleSubscription)
-// developerRoute.post('/stripeWebhook',developerController.stripePaymentHandler)
 
 
 
  // job
-
 developerRoute.get('/submittedProposals/:devId',jobController.getSubmitedProposal)
 developerRoute.get('/allJobs/:id',devAuthorization,jobController.JobsToDisplayDev)
 developerRoute.patch('/saveJob/:id',devAuthorization,jobController.saveJob)
 developerRoute.patch('/unSaveJob/:id',devAuthorization,jobController.unSaveJob)
 developerRoute.get('/savedJobs/:id',devAuthorization,jobController.SavedJobs)
-developerRoute.get('/quizAttendedDevs/:jobId/:devId',jobController.showQuizAttendedDevelopers)
+// developerRoute.get('/quizAttendedDevs/:jobId/:devId',jobController.showQuizAttendedDevelopers)
 developerRoute.get('/appliedJobsCount/:devId',devAuthorization,jobController.getAppliedJobsCount)
 developerRoute.get('/getQuiz/:devId/:jobId',devAuthorization,jobController.getQuiz)
 developerRoute.post('/sendProposal/:jobId',devAuthorization,jobController.sendProposal)
-//job Search
+developerRoute.get('/getJob/:id',devAuthorization,jobController.getIndividualJob)
 
-  
+
 export default developerRoute

@@ -87,7 +87,8 @@ const CompanyJob = () => {
     <>
     {showData===false&&showAppliedDevelopers === false?<div className="">
       {jobs.length > 0 && jobs.map((job) => (
-        <div
+        <div className="w-screen flex justify-center items-center">
+           <div
           key={job._id}
           className="bg-slate-600 bg-opacity-[5%] rounded-[15px] shadow-custom-black h-[280px] w-[730px] mt-[15px] px-5 py-3 text-white"
           onClick={()=>showJobData(job._id)}
@@ -120,6 +121,8 @@ const CompanyJob = () => {
             <button className="bg-violet text-white px-5 py-1 font-semibold rounded-[5px]" onClick={(e)=>displayAppliedDevelopers(e,job._id,job.jobTitle)}>Show Applied Developers</button>
           </div>
         </div>
+        </div>
+        
       ))}
     </div>:
     showData===true?

@@ -62,7 +62,6 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const experienceLevel = req.query.experienceLevel;
         const search = req.query.search;
         const sort = req.query.sort;
-        console.log('sort = ', sort);
         const match = { status: 'open' };
         const Sort = { jobTitle: 1 };
         if (qualification && qualification.length > 0) {
@@ -80,8 +79,11 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
         if (sort) {
             Sort.jobTitle = Number(sort);
         }
-        const savedjobs = yield developerSchema_1.default.findOne({ _id: objectId }, { savedJobs: 1, _id: 0 });
-        if (savedjobs !== (undefined || null)) {
+        const devData = yield developerSchema_1.default.findOne({ _id: objectId }, { savedJobs: 1, appliedJobs: 1, _id: 0 });
+        if ((devData === null || devData === void 0 ? void 0 : devData.appliedJobs) && devData.appliedJobs.length > 0) {
+            match._id = { $nin: devData.appliedJobs };
+        }
+        if (devData !== (undefined || null)) {
             jobsSchema_1.default.aggregate([
                 {
                     $match: match
@@ -96,9 +98,9 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 }, {
                     $sort: Sort !== null && Sort !== void 0 ? Sort : 1
                 }
-            ])
+            ], { collation: { locale: "en", strength: 2 } })
                 .then((data) => {
-                const savedJobs = savedjobs === null || savedjobs === void 0 ? void 0 : savedjobs.savedJobs;
+                const savedJobs = devData === null || devData === void 0 ? void 0 : devData.savedJobs;
                 res.status(200).json({ data, savedJobs });
             });
         }
@@ -143,8 +145,9 @@ const SavedJobs = (req, res) => {
         const qualification = req.query.qualification;
         const experienceLevel = req.query.experienceLevel;
         const search = req.query.search;
-        console.log('data = ', { qualification, experienceLevel, search });
+        const sort = req.query.sort;
         const match = {};
+        const Sort = { "jobs.jobTitle": 1 };
         if (qualification && qualification.length > 0) {
             match["jobs.qualification"] = { $in: qualification };
         }
@@ -156,6 +159,9 @@ const SavedJobs = (req, res) => {
                 { "jobs.jobTitle": { $regex: search, $options: "i" } },
                 { "jobs.skills": { $elemMatch: { $regex: search, $options: "i" } } }
             ];
+        }
+        if (sort) {
+            Sort["jobs.jobTitle"] = Number(sort);
         }
         developerSchema_1.default.aggregate([
             { $match: {
@@ -187,9 +193,11 @@ const SavedJobs = (req, res) => {
             { $unwind: "$jobs" },
             {
                 $match: Object.assign({ "jobs.status": "open" }, match)
+            }, {
+                $sort: Sort
             },
             { $project: { job: "$jobs", _id: 0 } }
-        ]).then((response) => {
+        ], { collation: { locale: "en", strength: 2 } }).then((response) => {
             if (response.length === 0) {
                 return res.status(200).json({ data: response });
             }
@@ -239,6 +247,23 @@ const getJob = (req, res) => {
         res.status(500).json({ message: 'An error occured on finding particular job' });
     }
 };
+const getIndividualJob = (req, res) => {
+    const { id } = req.params;
+    jobsSchema_1.default.aggregate([
+        {
+            $match: { _id: new mongodb_1.ObjectId(id) }
+        }, {
+            $lookup: {
+                from: 'companies',
+                localField: 'companyId',
+                foreignField: '_id',
+                as: 'companyDetails'
+            }
+        }
+    ]).then((data) => {
+        res.status(200).json({ data });
+    });
+};
 const editJob = (req, res) => {
     try {
         const { id } = req.params;
@@ -271,7 +296,7 @@ const editJob = (req, res) => {
 };
 const sendProposal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { developerId, coverLetter, score } = req.body;
+        const { developerId, coverLetter, score, resume } = req.body;
         const { jobId } = req.params;
         const DeveloperId = new mongodb_1.ObjectId(developerId);
         const JobId = new mongodb_1.ObjectId(jobId);
@@ -283,8 +308,10 @@ const sendProposal = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     jobId,
                     developerId,
                     coverLetter,
+                    resume,
                     score
                 }).save().then((data) => __awaiter(void 0, void 0, void 0, function* () {
+                    yield developerSchema_1.default.updateOne({ _id: DeveloperId }, { $addToSet: { appliedJobs: JobId } });
                     let Data = yield jobsSchema_1.default.aggregate([
                         {
                             $match: {
@@ -336,11 +363,12 @@ const createQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(500).json({ message: 'invalid error occurs' });
     }
 });
-const getQuiz = (req, res) => {
+const getQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { jobId, devId } = req.params;
         const objectId = new mongodb_1.ObjectId(String(jobId));
-        jobsSchema_1.default.findOneAndUpdate({ _id: objectId }, { $addToSet: { quizAttendedDevs: devId } }, { new: true })
+        yield developerSchema_1.default.updateOne({ _id: new mongodb_1.ObjectId(devId) }, { $addToSet: { appliedJobs: objectId } });
+        jobsSchema_1.default.findOne({ _id: objectId })
             .then((response) => {
             const Quiz = response === null || response === void 0 ? void 0 : response.Quiz;
             return res.status(200).json({ Quiz });
@@ -349,7 +377,7 @@ const getQuiz = (req, res) => {
     catch (error) {
         res.status(500).json({ message: 'An error occured while fetching data' });
     }
-};
+});
 const getSlots = (req, res) => {
     try {
         const { id } = req.query;
@@ -397,10 +425,18 @@ const getAppliedDevelopers = (req, res) => {
         {
             $project: {
                 _id: 0,
-                jobId: 0,
-                developerId: 0,
-                __v: 0
+                developerId: 1,
+                resume: 1,
+                createdAt: 1,
+                status: 1,
+                coverLetter: 1,
+                name: '$developer.name',
+                email: '$developer.email',
+                image: '$developer.image'
             }
+        },
+        {
+            $sort: { createdAt: -1 } // Sort by createdAt in descending order
         }
     ]).then((data) => {
         res.status(200).json({ data });
@@ -425,7 +461,9 @@ const getSubmitedProposal = (req, res) => {
     const { devId } = req.params;
     const objectId = new mongodb_1.ObjectId(devId);
     proposalSchema_1.default.aggregate([
-        { $match: { developerId: objectId } },
+        {
+            $match: { developerId: objectId }
+        },
         {
             $lookup: {
                 from: 'jobs', // Collection name for jobs
@@ -437,27 +475,51 @@ const getSubmitedProposal = (req, res) => {
         {
             $unwind: '$job'
         },
-        { $project: { _id: 0, jobId: 0, developerId: 0, __v: 0 } }
+        {
+            $lookup: {
+                from: 'companies', // Collection name for companies
+                localField: 'job.companyId',
+                foreignField: '_id',
+                as: 'company'
+            }
+        },
+        {
+            $unwind: '$company'
+        },
+        {
+            $sort: { 'createdAt': -1 }
+        },
+        {
+            $project: {
+                _id: 1,
+                jobId: 1,
+                jobName: '$job.jobTitle',
+                createdAt: 1,
+                resume: 1,
+                coverLetter: 1,
+                status: 1,
+                companyName: '$company.companyName',
+            }
+        }
     ]).then((data) => {
         res.status(200).json({ data });
     });
 };
-const showQuizAttendedDevelopers = (req, res) => {
-    const { jobId, devId } = req.params;
-    const JobID = new mongodb_1.ObjectId(jobId);
-    const DevID = new mongodb_1.ObjectId(devId);
-    jobsSchema_1.default.findOne({
-        _id: JobID,
-        quizAttendedDevs: { $elemMatch: { $eq: DevID } }
-    }).then((data) => {
-        if (data === null || data === void 0 ? void 0 : data.quizAttendedDevs.includes(DevID)) {
-            res.status(401).json({ message: 'you have already attended the quiz' });
-        }
-        else {
-            res.status(200).json({ message: '' });
-        }
-    });
-};
+// const showQuizAttendedDevelopers = (req:Request,res:Response)=>{
+//    const {jobId,devId} = req.params
+//    const JobID = new ObjectId(jobId as string)
+//    const DevID = new ObjectId(devId as string)
+//     Job.findOne({
+//             _id: JobID,
+//             quizAttendedDevs: { $elemMatch: { $eq: DevID } }
+//         }).then((data)=>{
+//          if(data?.quizAttendedDevs.includes(DevID)){
+//            res.status(401).json({message:'you have already attended the quiz'})
+//          }else{
+//             res.status(200).json({message:''})
+//          }
+//         })
+// }
 const getAppliedJobsCount = (req, res) => {
     const { devId } = req.params;
     developerSchema_1.default.aggregate([{
@@ -501,6 +563,7 @@ exports.jobController = {
     getAppliedDevelopers,
     changeProposalStatus,
     getSubmitedProposal,
-    showQuizAttendedDevelopers,
+    getIndividualJob,
+    // showQuizAttendedDevelopers,
     getAppliedJobsCount,
 };

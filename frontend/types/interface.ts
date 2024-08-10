@@ -50,27 +50,74 @@ export interface ComapnyData{
     skills:string[],
    } 
 
- export interface DeveloperData{
-    name: string;
-    _id:string;
-    email: string;
-    phoneNo?: string;
-    password: string;
-    image?: string;
-    role?: string;
-    description?: string;
-    skills?: string[];
-    completedWorks?: string[];
-    appliedJobsCount?:number
-    isVerified: boolean;
-    isBlocked: boolean;
- }
-   
+//  export interface DeveloperData{
+//     name: string;
+//     _id:string;
+//     email: string;
+//     phoneNo?: string;
+//     password: string;
+//     image?: string;
+//     role?: string;
+//     description?: string;
+//     resume?:string;
+//     skills?: string[];
+//     completedWorks?: string[];
+//     appliedJobsCount?:number
+//     isVerified: boolean;
+//     isBlocked: boolean;
+//  }
+
+ interface Subscription{
+  planName: 'Free' | 'Pro' | 'Premium',
+  startDate:Date,
+  endDate:Date,
+  isExpired:boolean
+}
+
+interface workExperience{
+  companyName:string;
+  role:string;
+  startDate:string;
+  endDate:string;
+}
+
+interface Certificate {
+  url:string,
+  certificateName:string
+}
+
+export interface DeveloperData  {
+  _id:string;
+  name: string;
+  email: string;
+  phoneNo?: string;
+  password?: string;
+  image?: string;
+  role?: string;
+  description?: string;
+  skills?: string[];
+  savedJobs?: string[];
+  qualification?:string
+  certificates?:Certificate[]|undefined
+  subscriptions?:Subscription[]|undefined,
+  appliedJobsCount?:number;
+  resume?:string;
+  isVerified?: boolean;
+  isBlocked?: boolean;
+  workExperience?:Array<workExperience>,
+  createdAt?:Date,
+  updatedAt?:Date
+}
 
 export   interface AppliedDevs {
+  developerId:string;
   coverLetter:string,
+  resume:string,
   status:string,
-  developer:DeveloperData
+  name:string;
+  email:string;
+  createdAt:Date;
+  image:string;
 }
 
 

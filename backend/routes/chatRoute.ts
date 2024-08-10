@@ -10,5 +10,6 @@ chatRoute.get('/individualMessages',ChatController.getIndividualMessages)
 chatRoute.get('/setMessageviewed',ChatController.setMessageViewed)
 chatRoute.delete('/deleteMessage/:id',ChatController.DeleteMessage)
 chatRoute.get('/onlineUsers',getOnlineUsers)
+chatRoute.get('/unReadChat/:id',ChatController.unReadMessagesCount)
 
 export default chatRoute

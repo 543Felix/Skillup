@@ -1,4 +1,4 @@
-import React ,{useState,Dispatch,SetStateAction, useEffect} from "react";
+import React ,{useState,Dispatch,SetStateAction, useEffect, useContext} from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -12,7 +12,7 @@ import AxiosInstance from '../../../utils/axios'
 import { useSelector,useDispatch } from "react-redux";
 import { RootState } from "../../store/store";
 import { devLogOut } from "../../store/slice/developerSlice";
-import {Notification as ConstantNotification } from '../../Routes/constants'
+import {Notification as ConstantNotification, devcontext } from '../../Routes/constants'
 import { convertToLocalTime } from "../../helperFunctions";  
 
 
@@ -30,7 +30,8 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
   const dispatch = useDispatch()
   const [expanded, setExpanded] = useState(false);
   const [showDropdown,setShowDropdown] = useState(false)
-
+  const context = useContext(devcontext)
+  const {unreadMesCount} = context
  const {image,_id} =  useSelector((state:RootState)=>{
     return state.developerRegisterData
   })
@@ -78,6 +79,8 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
      e.stopPropagation()
      setShowDropdown(true)
   }
+
+  console.log('unreadMesCount = ',unreadMesCount)
   return (
     <>
       <header className="fixed top-0 w-full p-4  mb-2 bg-black  border-b-2 border-violet text-white z-10">
@@ -99,7 +102,12 @@ const DevHeader: React.FC<Props> = React.memo(({notifications,setNotifications})
              <Link to={'/dev/proposals'}> Applied jobs</Link>  
             </li>
             <li className="flex items-center px-4 -mb-1 border-b-2">
-              <Link to={'/dev/chats'}>chats</Link>
+              <Link to={'/dev/chats'}>
+              <span className="relative inline-block">
+              chats  
+      {unreadMesCount.length>0&&(<span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">{unreadMesCount.length}</span>)}
+</span>
+              </Link>
                 
             </li>
             <li className="flex items-center px-4 -mb-1 border-b-2">

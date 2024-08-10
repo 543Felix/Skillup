@@ -234,10 +234,22 @@ const DeleteMessage = (req: Request, res: Response) => {
   })
 }
 
+const unReadMessagesCount = (req: Request, res: Response) =>{
+  const {id}  = req.params
+  Chat.aggregate([
+    {$match:{receiverId:new ObjectId(id as string),isViewed:false}},
+    {$group:{_id:'$senderId',count:{$sum:1}}},
+
+  ]).then((data)=>{
+    res.status(200).json(data)
+  })
+}
+
 export const ChatController = {
   getAllChats,
   sendMessage,
   getIndividualMessages,
   setMessageViewed,
-  DeleteMessage
+  DeleteMessage,
+  unReadMessagesCount
 };

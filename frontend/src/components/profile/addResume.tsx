@@ -8,6 +8,7 @@ import uploadImageToCloudinary from '../../../utils/cloudinary';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import AxiosInstance from '../../../utils/axios';
+import { useNavigate } from 'react-router-dom';
 
 
 interface MyComponentProps {
@@ -16,17 +17,25 @@ interface MyComponentProps {
 
 
 const AddResume:React.FC<MyComponentProps> = ({setLoader})=>{
+
+
     const [resumeModal,setResumeModal] = useState<boolean>(false)
     const [resumeUrl,setResumeUrl] = useState<string>('')
     const [pdfUrl, setPdfUrl] = useState<string>('');
 const [file,setFile] = useState<File>()
 const fileInputRef  = useRef<HTMLInputElement>(null)
+const navigate = useNavigate()
 const id = useSelector((state:RootState)=>{
     return state.developerRegisterData._id
 })
 
 useEffect(()=>{
  AxiosInstance.get(`/dev/resume/${id}`)
+ .then((response)=>{
+    if(response.data){
+        setResumeUrl(response.data.resume)
+    }
+ })
 },[id])
 
 const selectImage = ()=>{
@@ -89,7 +98,7 @@ const closeModal = ()=>{
             <div className="fixed top-0 left-0 z-10 w-full h-full flex justify-center items-center bg-black bg-opacity-65">
         <div className='bg-slate-800 px-10 py-5 h-auto w-[600px] rounded-[25px]'>
            <div className='flex justify-between  '>
-            <h1 className='text-white font-semibold  text-2xl'>Upload Resume</h1>
+            <h1 className='text-white font-semibold  text-2xl'>{resumeUrl.length>0?'Resume':'Upload Resume'}</h1>
             <FontAwesomeIcon icon={faCircleXmark} className='text-white h-7' onClick={closeModal}/>
            </div>
             <div>
@@ -114,17 +123,19 @@ const closeModal = ()=>{
         )}
          <div className=' bg-slate-500 bg-opacity-[15%] shadow-lg shadow-black rounded-[10px] p-6'>
           <div className='flex justify-between'>
-          <h1 className='text-white text-2xl font-semibold'>{resumeUrl.trim().length>0?'Resume uploaded':'Upload Resume'}</h1>
+          <h1 className='text-white text-2xl font-semibold'>{typeof resumeUrl === 'string' && resumeUrl.trim().length > 0 ? 'Resume uploaded' : 'Upload Resume'}</h1>
           <div className='flex space-x-3 items-center'>
 <button
   className='bg-violet text-white font-semibold px-5 py-1 rounded-lg'
   onClick={() => {
-    if (resumeUrl.trim().length === 0) {
+    if (typeof resumeUrl === 'string' && resumeUrl.trim().length === 0) {
       setResumeModal(true);
+    }else{
+        navigate('/dev/pdfView',{state:{url:resumeUrl}})
     }
   }}
 >
-  {resumeUrl.trim().length > 0 ? 'View' : 'Upload'}
+  {typeof resumeUrl === 'string' && resumeUrl.trim().length > 0 ? 'View' : 'Upload'}
 </button>          <FontAwesomeIcon icon={faEllipsisV} />
           </div>
           

@@ -19,7 +19,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const registationHelper_1 = require("../helper/registationHelper");
 const otpSchema_1 = __importDefault(require("../models/otpSchema"));
 const stripe_1 = __importDefault(require("stripe"));
-// import Proposal from "../models/proposalSchema";
+// import Meeting from '../models/meetingShema'
 const node_cron_1 = __importDefault(require("node-cron"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -388,7 +388,21 @@ const getResume = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(200).json({ resume });
     }
 });
-//  Subscription
+const getDevelopers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    developerSchema_1.default.aggregate([
+        {
+            $match: {
+                role: { $exists: true, $ne: "" },
+                description: { $exists: true, $ne: "" },
+                skills: { $exists: true, $not: { $size: 0 } }
+            }
+        }, { $project: { name: 1, role: 1, image: 1 } }
+    ])
+        .then((data) => {
+        res.status(200).json(data);
+    });
+});
+//  Subscription 
 const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { subscriptionType, devId } = req.body;
@@ -407,8 +421,8 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 },
             ],
             mode: 'payment',
-            success_url: 'http://localhost:5173/dev/payment-success',
-            cancel_url: 'http://localhost:5173/dev/payment-error',
+            success_url: `${process.env.FrontEndUrl}/dev/payment-success`,
+            cancel_url: `${process.env.FrontEndUrl}/dev/payment-error`,
         });
         if (session.id) {
             const duration = subscriptionType.mode === 'Pro' ? 28 : 364;
@@ -478,4 +492,5 @@ exports.developerController = {
     registerWithGoogle,
     HandleSubscription,
     isBlocked,
+    getDevelopers
 };

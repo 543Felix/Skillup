@@ -14,6 +14,6 @@ const companySchema = new Schema({
     image:{type:String,default:''},
     isVerified:{type:Boolean,default:false},
     isBlocked:{type:Boolean,default:false}
-})
+},{ timestamps: true })
 const Company = mongoose.model('Company',companySchema)
 export default Company

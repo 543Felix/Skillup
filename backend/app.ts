@@ -3,8 +3,8 @@ import connectDb from './mongodb/config';
 import developerRoute from './routes/developerRoutes';
 import companyRoute from './routes/companyRoutes';
 import adminRoute from './routes/adminRoute'
-import jobRoute from './routes/jobRoutes'
 import chatRoute from './routes/chatRoute'
+import meetingRoute from './routes/meetingRoute'
 import notificationRoute from './routes/notificationRoute'
 import dotenv from 'dotenv';
 import session from 'express-session';
@@ -50,10 +50,9 @@ app.use(session({
 app.use('/dev', developerRoute);
 app.use('/company', companyRoute);
 app.use('/admin',adminRoute)
-app.use('/job',jobRoute)
 app.use('/chat',chatRoute)
 app.use('/notifications',notificationRoute) 
-
+app.use('/meeting',meetingRoute)
 
 initializeSocket(httpServer)
 

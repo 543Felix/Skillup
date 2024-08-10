@@ -15,14 +15,9 @@ const jobSchema = new Schema({
    skills:{type:Array,required:true},
    Quiz:{type:Object,default:{}},
    salary:{type:String,required:true},
-  quizAttendedDevs: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'Developer',
-    default: []
-  },
    createdAt:{type:Date,required:true},
    status:{type:String,enum:['open','closed'],default:'closed'}
-})
+},{ timestamps: true })
 
 const Job =  mongoose.model('Job',jobSchema)
 export default Job

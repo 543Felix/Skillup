@@ -138,7 +138,8 @@ const HandleNext = ()=>{
 
   return (
     <>
-      <div className="bg-baseBaground bg-opacity-[25%] w-[800px]  rounded-lg shadow-custom-black relative sm:mx-[50px] md:mx-[150px] xl:mx-0">
+    <div className="flex w-screen justify-center ">
+    <div className="bg-baseBaground bg-opacity-[25%] w-[800px]  rounded-lg shadow-custom-black relative sm:mx-[50px] md:mx-[150px] xl:mx-0">
         <div className="flex items-start justify-between p-5 border-b rounded-t">
           {questionsPage?<h3 className="text-2xl font-bold text-white" >Add Questions For Selection</h3>
           :
@@ -336,6 +337,8 @@ const HandleNext = ()=>{
 }
 </div>
       </div>
+    </div>
+      
     </>
   );
 };

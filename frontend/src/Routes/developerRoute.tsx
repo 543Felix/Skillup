@@ -1,8 +1,6 @@
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState,useCallback } from "react";
 import { Route, Routes,Outlet } from "react-router-dom";
 import DevHeader from "../components/headerandFooter/devheader";
-// import Footer from "../juniorDevloper/footter";
-// import DeveloperHome from "../pages/developer/developerHome";
 import Loader from "../pages/loader";
 import Chat from "../components/chat/allChats";
 import socket,{connectSocket} from "../../utils/socket";
@@ -10,15 +8,17 @@ import AxiosInstance from "../../utils/axios";
 import PageNotFound from "../pages/404";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
-import GroupCall from "../components/metting/GroupCall";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { devLogOut } from "../store/slice/developerSlice";
 import MyPDFViewer from "../components/profile/pdfViwer";
-// import JobData from "../components/job/jobData";
+import JobData from "../components/job/jobData";
+import MeetingHome from "../components/metting/meetingHome";
+import VideoCall from "../components/metting/videoCall";
+import { Notification as constanNotification,UnRead } from "./constants";
+import MeetingHistory from "../pages/meetingHistory";
 
 
-import { Notification as constanNotification } from "./constants";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -46,23 +46,70 @@ const DeveloperRoute: React.FC = () => {
   const [messages, setMessages] = useState<Messages[]>([]);
   const [allChats,setAllchats] = useState<Allchats[]>([])
   const userId = useSelector((state: RootState) => state.developerRegisterData._id);
-  
+  const [unreadMesCount,setUnReadMesCount] = useState<UnRead[]>([])
+
   const navigate = useNavigate()
   const dispatch = useDispatch()
+
+
+  
+
+  const fetchUnReadMessages = useCallback(()=>{
+    if(userId.length>0){
+    AxiosInstance.get(`/chat/unReadChat/${userId}`)
+    .then((res)=>{
+      if(res.data){
+        console.log('unReadMes on company = ',res.data)
+        setUnReadMesCount(res.data)
+      }
+    })
+  }
+  },[userId])
+
     useEffect(() => {
     connectSocket(userId)
-
+    fetchUnReadMessages()
   
     socket.on("notification", async (data) => {
       setData(data);
     });
 
+   
+    socket.on("unReadMes", async (sender) => {
+      console.log('message recieved from = ',sender)
+      setUnReadMesCount((prevState) => {
+        const i = prevState.findIndex((item) => item.sender === sender);
+    
+        if (i !== -1) {
+          // Update the count for the existing sender
+          return prevState.map((item, index) => {
+            if (index === i) {
+              return {
+                ...item,
+                count: item.count + 1,
+              };
+            }
+            return item;
+          });
+        } else {
+          // Add a new sender to the list
+          return [
+            ...prevState,
+            { sender: sender, count: 1 },
+          ];
+        }
+      });
+    });
+
+
     return () => {
       socket.off("notification")
+      socket.off("unReadMes")
+
       
       socket.disconnect();
     };
-  }, [userId]);
+  }, [userId,fetchUnReadMessages]);
   
  useEffect(()=>{
 AxiosInstance.interceptors.response.use(
@@ -82,6 +129,8 @@ AxiosInstance.interceptors.response.use(
 );
   })
  
+  
+
 
 
   useEffect(() => {
@@ -92,10 +141,10 @@ AxiosInstance.interceptors.response.use(
 
   return (
     <div className="flex flex-col min-h-screen">
-      <devcontext.Provider value={{ messages, setMessages, allChats , setAllchats }}>
+      <devcontext.Provider value={{ messages, setMessages, allChats , setAllchats,unreadMesCount,setUnReadMesCount }}>
                        
       <DevHeader notifications={notifications} setNotifications={setNotifications} />
-      <div className="flex flex-grow py-28 px-28 space-x-24">
+      <div className="flex flex-grow pt-28 pb-10 px-4 space-x-24">
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<Displayjob />} />
@@ -117,7 +166,7 @@ AxiosInstance.interceptors.response.use(
               <Route index element={<Suspense fallback={<Loader />}>
                   <Displayjob />
                 </Suspense>} /> 
-                {/* <Route path=':id' element={<JobData/>}/> */}
+                <Route path=':id' element={<JobData/>}/>
 
             </Route>
             <Route
@@ -147,7 +196,9 @@ AxiosInstance.interceptors.response.use(
             <Route path="/pricingPage" element={<MakePayment/>}/>
               <Route path="/payment-success" element={<Paymentsucess/>}/>
               <Route path="/payment-error" element={<Paymenterror/>}/>
-         <Route path="/meeting" element={<GroupCall role="dev" />}/>
+         <Route path="/meeting" element={<MeetingHome role="dev" />}/>
+         <Route path="/meetingHistory" element={<MeetingHistory/>}/>
+         <Route path='/newMeeting' element={<VideoCall role='dev'/>} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </div>

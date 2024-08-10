@@ -1,6 +1,7 @@
 import express from 'express'
 import { companyController } from '../controllers/companyControllers'
 import { jobController } from '../controllers/jobControllers'
+import { developerController } from '../controllers/developerControllers'
 
 import companyAuthorization from '../middlewares/companyAuth'
 
@@ -15,25 +16,31 @@ companyRoute.post('/resendOtp',companyController.resendOtp)
 companyRoute.get('/isBlocked/:id',companyController.isBlocked)
 
 // Profile
-companyRoute.get('/profile',companyController.profile)
-companyRoute.post('/uploadProfile',companyController.uploadProfilePic)
-companyRoute.post('/profileData',companyController.updateProfileData)
-companyRoute.post('/updateAbout',companyController.updateAbout)
-companyRoute.post('/uploadCertificates',companyController.uploadCertificates)
-companyRoute.post('/updateSpecialties',companyController.updateSpecialties)
+companyRoute.get('/profile',companyAuthorization,companyController.profile)
+companyRoute.post('/uploadProfile',companyAuthorization,companyController.uploadProfilePic)
+companyRoute.post('/profileData',companyAuthorization,companyController.updateProfileData)
+companyRoute.post('/updateAbout',companyAuthorization,companyController.updateAbout)
+companyRoute.post('/uploadCertificates',companyAuthorization,companyController.uploadCertificates)
+companyRoute.post('/updateSpecialties',companyAuthorization,companyController.updateSpecialties)
 
 //job
-companyRoute.get('/getJob/:id',jobController.getJob)
-companyRoute.get('/allJobs/:id',companyAuthorization,jobController.companyJobs)
-companyRoute.patch('/setStatus',jobController.setJobStatus)
-companyRoute.delete('/deleteJob/:id',jobController.deleteJob)
-companyRoute.post('/createJob/:id',jobController.createJob)
-companyRoute.post('/editJob/:id',jobController.editJob)
-companyRoute.post('/createQuiz/:id',jobController.createQuiz)
-companyRoute.get('/appliedDevelopers/:jobId',jobController.getAppliedDevelopers)
-companyRoute.patch('/changeProposalStatus/:jobId',jobController.changeProposalStatus)
+companyRoute.get('/getJob/:id',companyAuthorization,jobController.getJob)
+companyRoute.get('/allJobs/:id',companyAuthorization,companyAuthorization,jobController.companyJobs)
+companyRoute.patch('/setStatus',companyAuthorization,jobController.setJobStatus)
+companyRoute.delete('/deleteJob/:id',companyAuthorization,jobController.deleteJob)
+companyRoute.post('/createJob/:id',companyAuthorization,jobController.createJob)
+companyRoute.post('/editJob/:id',companyAuthorization,jobController.editJob)
+companyRoute.post('/createQuiz/:id',companyAuthorization,jobController.createQuiz)
+companyRoute.get('/appliedDevelopers/:jobId',companyAuthorization,jobController.getAppliedDevelopers)
+companyRoute.patch('/changeProposalStatus/:jobId',companyAuthorization,jobController.changeProposalStatus)
+
+// All Developers 
+companyRoute.get('/allDevelopers',companyAuthorization,developerController.getDevelopers)
+companyRoute.get('/devProfile',companyAuthorization,developerController.profile)
 
 
-
+//Dashboard
+companyRoute.get('/dashboard',companyAuthorization,companyController.dashBoardData)
+companyRoute.get('/jobChart',companyAuthorization,companyController.appliedJobsChart)
 
 export default companyRoute

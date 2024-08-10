@@ -34,7 +34,7 @@ const IndividualChats:React.FC<Props> = ({senderId,receiverId,senderModel,receiv
   
   const [Content,setContent] = useState('')
   const context = useContext(role==='companies'?companyContext:devcontext)
-  const {messages,setMessages,setAllchats} = context
+  const {messages,setMessages,setAllchats,setUnReadMesCount} = context
   const [showOptions,setOptions] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file,setFile] = useState<File|null|undefined>(null)
@@ -163,7 +163,13 @@ if (
         return prevMessages;
       });
     })
+  socket.on('unReadMes',async(sender)=>{
+    setUnReadMesCount((prevState)=>{
+      return prevState.filter((item)=>item.sender!==sender)
+    })
+  })
 
+  
  AxiosInstance.get('/chat/individualMessages',{
   params:{
     senderId:senderId,
@@ -171,14 +177,18 @@ if (
   }
  }).then((res)=>{
   setMessages(res.data.data)
+  setUnReadMesCount((prevState)=>{
+    return prevState.filter((item)=>item.sender!==receiverId)
+  })
   socket.emit('msgViewed',{senderId,receiverId})
  })
  return ()=>{
   socket.off('msgViewed')
   socket.off("newMessage")
   socket.off("msgDeleted")
+  socket.off("unReadMes")
  }
-  },[senderId,receiverId,setMessages,setAllchats])
+  },[senderId,receiverId,setMessages,setAllchats,setUnReadMesCount])
 
   const sendMessOnEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {

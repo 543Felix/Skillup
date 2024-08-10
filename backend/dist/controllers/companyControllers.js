@@ -18,6 +18,8 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const registationHelper_1 = require("../helper/registationHelper");
 const otpSchema_1 = __importDefault(require("../models/otpSchema"));
 const mongodb_1 = require("mongodb");
+const jobsSchema_1 = __importDefault(require("../models/jobsSchema"));
+const proposalSchema_1 = __importDefault(require("../models/proposalSchema"));
 const registation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { companyName, companyType, noOfEmployes, email, phoneNo, password } = req.body;
     try {
@@ -249,12 +251,96 @@ const resendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json(error);
     }
 });
-//chats 
-// const getChats = (req:Request,res:Response)=>{
-// const {Id} = req.params
-// const objectId = new ObjectId(Id)
-// Chat.aggregate([{$match:{senderId:objectId}}])
-// } 
+const dashBoardData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e;
+    const { id } = req.query;
+    const jobsCount = yield jobsSchema_1.default.aggregate([
+        { $match: { companyId: new mongodb_1.ObjectId(id) } },
+        { $count: "totalJobs" }
+    ]);
+    const totalAppliedDevCounts = yield proposalSchema_1.default.aggregate([
+        {
+            $lookup: {
+                from: 'jobs',
+                localField: 'jobId',
+                foreignField: '_id',
+                as: 'jobDetails'
+            }
+        },
+        {
+            $unwind: "$jobDetails"
+        },
+        {
+            $match: {
+                "jobDetails.companyId": new mongodb_1.ObjectId(id)
+            }
+        },
+        {
+            $facet: {
+                totalAppliedCount: [
+                    {
+                        $count: 'count'
+                    }
+                ],
+                selectedAppliedCount: [
+                    {
+                        $match: {
+                            status: 'selected'
+                        }
+                    },
+                    {
+                        $count: 'count'
+                    }
+                ]
+            }
+        }
+    ]);
+    const totaljobsApplied = (_b = (_a = totalAppliedDevCounts[0]) === null || _a === void 0 ? void 0 : _a.totalAppliedCount[0]) === null || _b === void 0 ? void 0 : _b.count;
+    const selectedCount = (_d = (_c = totalAppliedDevCounts[0]) === null || _c === void 0 ? void 0 : _c.selectedAppliedCount[0]) === null || _d === void 0 ? void 0 : _d.count;
+    res.json({ totaljobsApplied, selectedCount, jobsCount: (_e = jobsCount[0]) === null || _e === void 0 ? void 0 : _e.totalJobs });
+});
+const appliedJobsChart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { companyId, range } = req.query;
+    try {
+        const validRanges = ["last7days", "last30days", "last90days", "allTime"];
+        if (!validRanges.includes(range)) {
+            return res.status(400).json({ error: "Invalid range parameter" });
+        }
+        const rangeFilter = range !== 'allTime' ? {
+            createdAt: {
+                $gte: new Date(new Date().setDate(new Date().getDate() - (range === "last7days" ? 7 : range === "last30days" ? 30 : 90)))
+            }
+        } : {};
+        // Aggregate query to get the count of applied jobs grouped by job post name
+        const totalAppliedDevCounts = yield proposalSchema_1.default.aggregate([
+            {
+                $lookup: {
+                    from: 'jobs',
+                    localField: 'jobId',
+                    foreignField: '_id',
+                    as: 'jobDetails'
+                }
+            },
+            {
+                $unwind: "$jobDetails"
+            },
+            {
+                $match: Object.assign({ "jobDetails.companyId": new mongodb_1.ObjectId(companyId) }, rangeFilter)
+            },
+            {
+                $group: {
+                    _id: "$jobId", // Group by job post name
+                    count: { $sum: 1 } // Count the number of proposals
+                }
+            }
+        ]);
+        res.json(totalAppliedDevCounts);
+    }
+    catch (error) {
+        console.error('Error fetching applied dev counts:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 exports.companyController = {
     registation,
     verifyRegistration,
@@ -267,5 +353,7 @@ exports.companyController = {
     uploadCertificates,
     updateSpecialties,
     resendOtp,
-    isBlocked
+    isBlocked,
+    dashBoardData,
+    appliedJobsChart
 };

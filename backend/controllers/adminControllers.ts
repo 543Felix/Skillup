@@ -7,6 +7,22 @@ import Job from "../models/jobsSchema"
 import { ObjectId} from "mongodb"
 import { adminSideListingData } from "../types/interface"
 import { registerHelper } from "../helper/registationHelper"
+import moment from 'moment'
+
+
+
+interface DateRange{
+  $gte?:Date;
+  $lt?:Date
+}
+interface ChartMatchCondition{
+  createdAt?:DateRange
+}
+
+interface GroupCondition{
+  _id:{}|null,
+  count:{}
+}
 
 const login = async (req:Request,res:Response)=>{
     let {name,password} = req.body
@@ -150,6 +166,78 @@ const totalIncome = totalSubscriptionsEach.reduce((sum,item)=>{
     res.status(200).json({DeveloperCount,CompaniesCount,jobsCount,totalIncome})
   }
 
+  const ChartData = async(req:Request,res:Response)=>{
+    const { period,role } = req.query;
+    let matchCondition:ChartMatchCondition = { };
+    let groupByCondition:GroupCondition = { _id: null, count: { $sum: 1 } };
+    let dateRange:DateRange|null = {};
+  
+    switch (period) {
+      case 'last7days':
+        dateRange = {
+          $gte: moment().subtract(7, 'days').startOf('day').toDate(),
+          $lt: moment().endOf('day').toDate(),
+        };
+        break;
+      case 'last30days':
+        dateRange = {
+          $gte: moment().subtract(30, 'days').startOf('day').toDate(),
+          $lt: moment().endOf('day').toDate(),
+        };
+        break;
+      case 'last90days':
+        dateRange = {
+          $gte: moment().subtract(90, 'days').startOf('day').toDate(),
+          $lt: moment().endOf('day').toDate(),
+        };
+        break;
+      case 'allTime':
+        dateRange = null; 
+        break;
+      default:
+        return res.status(400).send('Invalid period');
+    }
+  
+    if (dateRange&&(period === 'last30days' || period === 'last90days')) {
+      matchCondition.createdAt = dateRange;
+        groupByCondition._id = {
+          $subtract: [
+            { $subtract: ["$createdAt", new Date(0)] },
+            { $mod: [{ $subtract: ["$createdAt", new Date(0)] }, 1000 * 60 * 60 * 24 * 7] }
+          ]
+        };
+    }else if(dateRange){
+      matchCondition.createdAt = dateRange;
+      groupByCondition._id = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
+    } else {
+      groupByCondition._id = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+    }
+  
+    try {
+      if(role ==='dev'){
+      const  data = await Developer.aggregate([
+          { $match: matchCondition },
+          { $group: groupByCondition },
+          { $sort: { _id: 1 } },
+        ]);
+        return  res.json(data);
+      }else if(role ==='companies'){
+       const data = await Company.aggregate([
+          { $match: matchCondition },
+          { $group: groupByCondition },
+          { $sort: { _id: 1 } },
+        ]);
+       return res.json(data);
+      }
+      
+  
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  
+  }
+
 export const adminController ={
     login,
     showDevelopers,
@@ -161,5 +249,6 @@ export const adminController ={
     logOut,
     verifyCompany,
     unverifyCompany,
-    getDetailsOnDashboard
+    getDetailsOnDashboard,
+    ChartData
 }

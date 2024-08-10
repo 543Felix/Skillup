@@ -8,7 +8,9 @@ interface developerData{
     phoneNo:number,
     password:string,
     isBlocked?:boolean,
-    image:string
+    image:string,
+    createdAt:Date,
+    updatedAt:Date
 }
 
 interface adminSideListingData{
@@ -29,7 +31,9 @@ interface companyData{
     phoneNo:number,
     password:string,
     isVerified?:boolean,
-    isBlocked?:boolean
+    isBlocked?:boolean,
+    createdAt:Date,
+    updatedAt:Date
 }
 interface OTP{
     name:string,

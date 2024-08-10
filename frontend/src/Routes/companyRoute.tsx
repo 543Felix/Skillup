@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect } from "react";
+import React, { Suspense, lazy, useState, useEffect,useCallback } from "react";
 import CompanyHeader from "../components/headerandFooter/companyHeader";
 import { Routes, Route } from "react-router-dom";
 const CompanyProfile = lazy(() => import("../pages/company/companyProfile"));
@@ -12,19 +12,27 @@ import AxiosInstance from "../../utils/axios";
 import { useSelector } from "react-redux";
 import socket,{connectSocket} from "../../utils/socket";
 import { RootState } from "../store/store";
-import { Messages,Allchats,companyContext,Notification } from "./constants";
-import GroupCall from "../components/metting/GroupCall";
+import { Messages,Allchats,companyContext,Notification,UnRead } from "./constants";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { companyLogOut } from "../store/slice/companySlice";
+import MeetingHome from "../components/metting/meetingHome";
+import VideoCall from "../components/metting/videoCall";
+import CompanyDashboard from "../pages/company/dashboard";
+import DeveloperListsCard from "../pages/company/developersList";
+import IndividualDevData from "../pages/company/individualDevData";
+import MyPDFViewer from "../components/profile/pdfViwer";
+import MeetingHistory from "../pages/meetingHistory";
+
 
 
 const CompanyRoute: React.FC = () => {
-
+ 
   const [messages, setMessages] = useState<Messages[]>([]);
   const [allChats,setAllchats] = useState<Allchats[]>([])
   const [notifications,setNotifications] = useState<Notification[]>([])
   const [data,setData] = useState([])
+  const [unreadMesCount,setUnReadMesCount] = useState<UnRead[]>([])
   const userId = useSelector((state: RootState) => {
     return state.companyRegisterData._id;
   });
@@ -32,25 +40,74 @@ const CompanyRoute: React.FC = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
+  // const fetchNotification = useCallback(()=>{
+  //   AxiosInstance.get(`/notifications/${userId}/developers`).then((res) => {
+  //     setNotifications(res.data);
+  //   });
+  //  },[userId])
   
+
+  const fetchUnReadMessages = useCallback(()=>{
+    if(userId.length>0){
+    AxiosInstance.get(`/chat/unReadChat/${userId}`)
+    .then((res)=>{
+      if(res.data){
+        console.log('unReadMes on company = ',res.data)
+        setUnReadMesCount(res.data)
+      }
+    })
+  }
+  },[userId])
+
+
   useEffect(() => {
-    console.log('userId = ',userId)
     connectSocket(userId)
    
+    
+    fetchUnReadMessages()
    
     
     socket.on("notification", async (data) => {
       setData(data);
     });
+    
+    socket.on("unReadMes", async (sender) => {
+      console.log('message recieved from = ',sender)
+      setUnReadMesCount((prevState) => {
+        const i = prevState.findIndex((item) => item.sender === sender);
+    
+        if (i !== -1) {
+          // Update the count for the existing sender
+          return prevState.map((item, index) => {
+            if (index === i) {
+              return {
+                ...item,
+                count: item.count + 1,
+              };
+            }
+            return item;
+          });
+        } else {
+          // Add a new sender to the list
+          return [
+            ...prevState,
+            { sender: sender, count: 1 },
+          ];
+        }
+      });
+    });
+    
+    
 
    
 
     return () => {
       socket.off("notification")
-      
+      socket.off('newMessage')
+      socket.off("unReadMes")
       socket.disconnect();
     };
-  }, [userId]);
+  }, [userId,fetchUnReadMessages]);
 
    useEffect(()=>{
 AxiosInstance.interceptors.response.use(
@@ -70,17 +127,20 @@ AxiosInstance.interceptors.response.use(
 );
   })
 
-
   useEffect(() => {
-    AxiosInstance.get(`/notifications/${userId}/developers`).then((res) => {
+    AxiosInstance.get(`/notifications/${userId}/companies`).then((res) => {
       setNotifications(res.data);
     });
   }, [data, userId]);
+  
+   
+   
+
   return (
     <>
-    <companyContext.Provider value={{ messages, setMessages,allChats,setAllchats }}>
+    <companyContext.Provider value={{ messages, setMessages,allChats,setAllchats,unreadMesCount,setUnReadMesCount }}>
       <CompanyHeader notifications={notifications} setNotifications={setNotifications} />
-      <div className="flex flex-grow py-28 px-28 space-x-24">
+      <div className="flex flex-grow pt-28 pb-10 px-4 space-x-24">
         <Routes>
           <Route
             path="/"
@@ -122,8 +182,13 @@ AxiosInstance.interceptors.response.use(
                 <Chat role="companies" />
             }
           />
-         <Route path="/meeting" element={<GroupCall role="companies" />}/>
-         {/* <Route path="/newMeeting/:roomId" element={<JitsiMain role="companies"/>} /> */}
+          <Route path="/dashboard" element={<CompanyDashboard/>} />
+          <Route path="/pdfView" element={<MyPDFViewer/>} />
+          <Route path="/developers" element={<DeveloperListsCard/>} />
+          <Route path="/developers/:id" element={<IndividualDevData />} />
+          <Route path="/meeting" element={<MeetingHome role="companies" />}/>
+          <Route path="/meetingHistory" element={<MeetingHistory/>}/>
+         <Route path='/newMeeting' element={<VideoCall role='companies'/>} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>

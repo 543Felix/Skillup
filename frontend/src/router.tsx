@@ -22,6 +22,8 @@ const App:React.FC = ()=>{
       <Route path="/" element={<Homepage/>} />
        <Route  path="/registerAs"  element={<RegisterAs/>}/>
 
+       
+
       {/* developer */}
       <Route  path="/dev/login"  element={<Login data={'dev'}/>}/>
        <Route path="/dev/register" element={<Register />}/>
@@ -40,15 +42,14 @@ const App:React.FC = ()=>{
         <Route path="*" element={<CompanyRoute/>} />
        </Route>
 
-       {/* job */}  
-        {/* <Route path="/job/createJob" element={<Createjob/>} /> */}
-        {/* <Route path="/job" element={<Jobs role={'main'}/>} /> */}
-        {/* <Route path="/job/data" element={<JobData />} /> */}
+      
+
        {/* Admin */}
-       <Route path="/admin/" element={<AdminHome />}/>
+       <Route path="/admin/" element={<AdminHome data={'dashboard'} />}/>
        <Route path="/admin/login"  element={<Login data={'Admin'}/>} />
        <Route path="/admin/developers" element={<AdminHome data={'dev'}/>}/>
        <Route path="/admin/companies" element={<AdminHome data={'company'}/>}/>
+       <Route path="/admin/dashboard" element={<AdminHome data={'dashboard'}/>}/>
        <Route path="*" element={<PageNotFound/>} />
        <Route path="*" element={<PageNotFound/>}/>
     </Routes>

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const companyControllers_1 = require("../controllers/companyControllers");
 const jobControllers_1 = require("../controllers/jobControllers");
+const developerControllers_1 = require("../controllers/developerControllers");
 const companyAuth_1 = __importDefault(require("../middlewares/companyAuth"));
 const companyRoute = (0, express_1.default)();
 companyRoute.post('/registration', companyControllers_1.companyController.registation);
@@ -31,4 +32,10 @@ companyRoute.post('/editJob/:id', jobControllers_1.jobController.editJob);
 companyRoute.post('/createQuiz/:id', jobControllers_1.jobController.createQuiz);
 companyRoute.get('/appliedDevelopers/:jobId', jobControllers_1.jobController.getAppliedDevelopers);
 companyRoute.patch('/changeProposalStatus/:jobId', jobControllers_1.jobController.changeProposalStatus);
+// All Developers 
+companyRoute.get('/allDevelopers', developerControllers_1.developerController.getDevelopers);
+companyRoute.get('/devProfile', developerControllers_1.developerController.profile);
+//Dashboard
+companyRoute.get('/dashboard', companyControllers_1.companyController.dashBoardData);
+companyRoute.get('/jobChart', companyControllers_1.companyController.appliedJobsChart);
 exports.default = companyRoute;

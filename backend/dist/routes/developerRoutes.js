@@ -30,20 +30,19 @@ developerRoute.patch('/uploadCertificates', developerControllers_1.developerCont
 developerRoute.patch('/deleteCertificate', developerControllers_1.developerController.deleteCertificate);
 developerRoute.patch('/uploadResume', developerControllers_1.developerController.uploadResume);
 developerRoute.get('/resume/:id', developerControllers_1.developerController.getResume);
-// developerRoute.get('/qualification/:id',developerController.getQualification)
-//job 
+//allDevelopers
+developerRoute.get('/allDevelopers');
 // Subscription
 developerRoute.post('/create-checkout-session', developerAuth_1.default, developerControllers_1.developerController.HandleSubscription);
-// developerRoute.post('/stripeWebhook',developerController.stripePaymentHandler)
 // job
 developerRoute.get('/submittedProposals/:devId', jobControllers_1.jobController.getSubmitedProposal);
 developerRoute.get('/allJobs/:id', developerAuth_1.default, jobControllers_1.jobController.JobsToDisplayDev);
 developerRoute.patch('/saveJob/:id', developerAuth_1.default, jobControllers_1.jobController.saveJob);
 developerRoute.patch('/unSaveJob/:id', developerAuth_1.default, jobControllers_1.jobController.unSaveJob);
 developerRoute.get('/savedJobs/:id', developerAuth_1.default, jobControllers_1.jobController.SavedJobs);
-developerRoute.get('/quizAttendedDevs/:jobId/:devId', jobControllers_1.jobController.showQuizAttendedDevelopers);
+// developerRoute.get('/quizAttendedDevs/:jobId/:devId',jobController.showQuizAttendedDevelopers)
 developerRoute.get('/appliedJobsCount/:devId', developerAuth_1.default, jobControllers_1.jobController.getAppliedJobsCount);
 developerRoute.get('/getQuiz/:devId/:jobId', developerAuth_1.default, jobControllers_1.jobController.getQuiz);
 developerRoute.post('/sendProposal/:jobId', developerAuth_1.default, jobControllers_1.jobController.sendProposal);
-//job Search
+developerRoute.get('/getJob/:id', developerAuth_1.default, jobControllers_1.jobController.getIndividualJob);
 exports.default = developerRoute;

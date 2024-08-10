@@ -17,7 +17,16 @@ const socket_io_1 = require("socket.io");
 const chatSchema_1 = __importDefault(require("../models/chatSchema"));
 const notificationSchema_1 = __importDefault(require("../models/notificationSchema"));
 const mongodb_1 = require("mongodb");
+const short_unique_id_1 = __importDefault(require("short-unique-id"));
+const meetingShema_1 = __importDefault(require("../models/meetingShema"));
 const socketUsers = new Map();
+const meetings = new Map();
+const formatDuration = (duration) => {
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    const seconds = duration % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+};
 const initializeSocket = (httpServer) => {
     const io = new socket_io_1.Server(httpServer, {
         cors: {
@@ -48,6 +57,7 @@ const initializeSocket = (httpServer) => {
                     const { _id, content, createdAt, isViewed, type } = data;
                     callback({ senderId, receiverId, _id, content, createdAt, isViewed, type });
                     socket.to(receiver).emit('newMessage', { senderId, receiverId, _id, content, createdAt, isViewed, type });
+                    socket.to(receiver).emit('unReadMes', senderId);
                 });
             }
             catch (error) {
@@ -95,6 +105,56 @@ const initializeSocket = (httpServer) => {
             const { senderId, receiverId } = data;
             const receiverSocketId = socketUsers.get(receiverId);
             socket.to(receiverSocketId).emit('msgViewed', { senderId, receiverId });
+        }));
+        socket.on('newMeeting', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
+            const { _id, name } = data;
+            const { randomUUID } = new short_unique_id_1.default();
+            const roomId = randomUUID();
+            console.log('roomId = ', roomId);
+            const startDate = new Date();
+            meetings.set(roomId, { members: [{ _id, name }], startDate: startDate });
+            const newMeeting = new meetingShema_1.default({
+                roomId: roomId,
+                createdBy: _id,
+                members: [{ _id, name }]
+            });
+            newMeeting.save().then(() => {
+                callback(roomId);
+            });
+            // callback
+        }));
+        socket.on('joinRoom', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
+            const { roomId, _id, name } = data;
+            const roomDetails = meetings.get(roomId);
+            if (roomDetails) {
+                roomDetails.members.push({ _id, name });
+                meetingShema_1.default.findOneAndUpdate({ roomId: roomId, isCallEnded: false }, {
+                    $addToSet: { members: { _id, name } }
+                })
+                    .then(() => {
+                    callback('success');
+                });
+            }
+            else {
+                callback('Room not found either create a new room or try another roomId');
+            }
+        }));
+        socket.on('leaveRoom', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
+            const { _id, roomId } = data;
+            const meetingData = meetings.get(roomId);
+            meetingData.members = meetingData.members.filter((item) => item._id !== _id);
+            if (meetingData.members.length === 0) {
+                const endDate = new Date();
+                const callDuration = Math.floor((endDate.getTime() - meetingData.startDate.getTime()) / 1000);
+                const formattedDuration = formatDuration(callDuration);
+                yield meetingShema_1.default.findOneAndUpdate({ roomId: roomId, isCallEnded: false }, { isCallEnded: true, callDuration: formattedDuration });
+                callback('success');
+                meetings.delete(roomId);
+            }
+            else {
+                meetings.set(roomId, meetingData);
+                callback('success');
+            }
         }));
         socket.on('disconnect', () => {
             let userId;

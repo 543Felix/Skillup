@@ -3,9 +3,21 @@ import { Server as HTTPServer } from 'http';
 import Chat from '../models/chatSchema';
 import Notification from '../models/notificationSchema'
 import { ObjectId } from 'mongodb';
+import ShortUniqueId from 'short-unique-id'
+import Meeting from '../models/meetingShema'
 
 
 const socketUsers= new Map()
+
+const meetings = new Map() 
+
+
+const formatDuration = (duration: number) => {
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = duration % 60;
+  return `${hours}h ${minutes}m ${seconds}s`;
+};
 
 
 
@@ -44,9 +56,9 @@ const initializeSocket = (httpServer:HTTPServer) => {
       const {_id,content,createdAt,isViewed,type} = data
       callback({senderId,receiverId,_id,content,createdAt,isViewed,type});
       socket.to(receiver).emit('newMessage',{senderId,receiverId,_id,content,createdAt,isViewed,type})
+      socket.to(receiver).emit('unReadMes',senderId)
     })    
       } catch (error) {
-        console.log('error')
       }
       
      })
@@ -94,6 +106,8 @@ const initializeSocket = (httpServer:HTTPServer) => {
     const receiversocketId = socketUsers.get(receiverId)
     socket.to(receiversocketId).emit("stopTyping",senderId)
   })
+
+  
  
   socket.on('msgViewed',async(data)=>{
     const {senderId,receiverId} = data
@@ -102,6 +116,54 @@ const initializeSocket = (httpServer:HTTPServer) => {
     
   })
   
+  socket.on('newMeeting',async(data,callback)=>{
+    const {_id,name} = data
+    const { randomUUID } = new ShortUniqueId()
+    const roomId = randomUUID()
+    const startDate = new Date()
+    meetings.set(roomId,{members:[{_id,name}],startDate:startDate})
+  const newMeeting =   new Meeting({
+      roomId:roomId,
+      createdBy:_id,
+      members:[{_id,name}]
+    })
+    newMeeting.save().then(()=>{
+      callback(roomId)
+    })
+    // callback
+  })
+
+  socket.on('joinRoom',async(data,callback)=>{
+    const {roomId,_id,name} = data
+    const roomDetails = meetings.get(roomId)
+    if(roomDetails){
+      roomDetails.members.push({_id,name})
+      Meeting.findOneAndUpdate({roomId:roomId,isCallEnded:false},{
+        $addToSet:{members:{_id,name}}
+      })
+      .then(()=>{
+        callback('success')
+      }) 
+    }else{
+      callback('Room not found either create a new room or try another roomId')
+    }
+  })
+  socket.on('leaveRoom',async(data,callback)=>{
+    const {_id,roomId} = data
+    const meetingData = meetings.get(roomId)
+    meetingData.members = meetingData.members.filter((item:{[key:string]:string})=>item._id!==_id)
+    if(meetingData.members.length===0){
+      const endDate:Date = new Date()
+      const callDuration = Math.floor((endDate.getTime() - meetingData.startDate.getTime()) / 1000); 
+      const formattedDuration = formatDuration(callDuration);
+     await Meeting.findOneAndUpdate({roomId:roomId,isCallEnded:false},{isCallEnded:true,callDuration:formattedDuration})
+          callback('success')
+        meetings.delete(roomId)
+    }else{
+      meetings.set(roomId,meetingData)
+      callback('success')
+    }
+  })
 
 
     socket.on('disconnect',()=>{
@@ -124,3 +186,8 @@ export const getOnlineUsers =()=>{
 }
 
 export default initializeSocket;
+
+
+
+      
+

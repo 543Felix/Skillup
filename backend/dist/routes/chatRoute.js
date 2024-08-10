@@ -12,4 +12,5 @@ chatRoute.get('/individualMessages', chatController_1.ChatController.getIndividu
 chatRoute.get('/setMessageviewed', chatController_1.ChatController.setMessageViewed);
 chatRoute.delete('/deleteMessage/:id', chatController_1.ChatController.DeleteMessage);
 chatRoute.get('/onlineUsers', socketInitial_1.getOnlineUsers);
+chatRoute.get('/unReadChat/:id', chatController_1.ChatController.unReadMessagesCount);
 exports.default = chatRoute;

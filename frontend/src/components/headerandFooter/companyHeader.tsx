@@ -1,4 +1,4 @@
-import React,{useState,useEffect,Dispatch,SetStateAction} from'react'
+import React,{useState,useEffect,Dispatch,SetStateAction, useContext} from'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleXmark } from '@fortawesome/free-regular-svg-icons'
 import { faAngleUp, faBell,faAngleDown } from "@fortawesome/free-solid-svg-icons";
@@ -8,8 +8,7 @@ import { useSelector,useDispatch } from 'react-redux'
 import AxiosInstance from '../../../utils/axios'
 import { toast } from 'react-toastify'
 import { companyLogOut } from '../../store/slice/companySlice'
-import socket from '../../../utils/socket'
-import { Notification } from '../../Routes/constants';
+import { companyContext, Notification } from '../../Routes/constants';
 
 import { convertToLocalTime } from '../../helperFunctions';
 interface Props{
@@ -20,21 +19,12 @@ interface Props{
 
 const CompanyHeader:React.FC<Props> = ({notifications})=>{
   const [expanded,setExpanded] = useState(false)
-const userId = useSelector((state:RootState)=>{
-  return state.companyRegisterData._id
-})
-// const socket = io("http://localhost:3001");
-  useEffect(()=>{
-    socket.connect()
-     
-    socket.emit('register',(userId))
-    
-    
-    return()=>{
-       socket.disconnect()
-    }
-      
-  },[userId])
+  const context = useContext(companyContext)
+// const userId = useSelector((state:RootState)=>{
+//   return state.companyRegisterData._id
+// })
+const {unreadMesCount} = context
+  
   const {image} = useSelector((state:RootState)=>{
     return state?.companyRegisterData
    })
@@ -58,6 +48,9 @@ const userId = useSelector((state:RootState)=>{
        }
       })
     }
+
+    console.log('unreadMesCount = ',unreadMesCount)
+
 return(
     <>
     <header className="fixed top-0 w-full py-4  px-10 bg-black border-b-2 border-violet text-white z-10">
@@ -83,16 +76,32 @@ return(
                 Developers
               </a>
             </li> */}
+             <li className="flex items-center  -mb-1  font-semibold text-md">
+              <Link to={'/company/dashboard'}>
+                Dashboard
+                 </Link>
+            </li>
+            <li className="flex items-center  -mb-1  font-semibold text-md">
+              <Link to={'/company/developers'}>
+                Developers
+                 </Link>
+            </li>
             <li className="flex items-center  -mb-1  font-semibold text-md">
               <Link to={'/company/job'}>
                  My posts
                  </Link>
             </li>
-            <li className="flex  items-center  -mb-1  font-semibold text-md">
+            {/* <li className="flex  items-center  -mb-1  font-semibold text-md">
                 Schedules
-            </li>
+            </li> */}
             <li className="flex  items-center  -mb-1  font-semibold text-md">
-              <Link to={'/company/chats'}>chats</Link>
+              <Link to={'/company/chats'}>
+              <span className="relative inline-block">
+              chats  
+      {unreadMesCount.length>0&&(<span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">{unreadMesCount.length}</span>)}
+</span>
+              </Link>
+              {/* unreadMesCount */}
             </li>
             <li className="flex items-center  -mb-1  font-semibold text-md">
                <Link to={'/company/meeting'}>Meetings</Link> 

@@ -38,6 +38,6 @@ const companySchema = new mongoose_1.Schema({
     image: { type: String, default: '' },
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false }
-});
+}, { timestamps: true });
 const Company = mongoose_1.default.model('Company', companySchema);
 exports.default = Company;

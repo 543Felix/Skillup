@@ -9,8 +9,9 @@ const proposalSchema = new mongoose_1.default.Schema({
     jobId: { type: mongodb_1.ObjectId, required: true, ref: 'Job' },
     developerId: { type: mongodb_1.ObjectId, required: true, ref: 'Developer' },
     coverLetter: { type: String, required: true },
+    resume: { type: String, required: true },
     score: { type: Number },
-    status: { type: String, enum: ['rejected', 'selectd', 'shortListed', ''], default: '' }
-});
+    status: { type: String, enum: ['rejected', 'selectd', 'shortListed', 'send'], default: 'send' }
+}, { timestamps: true });
 const Proposal = mongoose_1.default.model('Proposal', proposalSchema);
 exports.default = Proposal;

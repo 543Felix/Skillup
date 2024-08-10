@@ -30,14 +30,16 @@ interface IDeveloper extends Document {
     skills?: string[];
     savedJobs?: mongoose.Types.ObjectId[];
     qualification:string
-    // completedWorks?: string[];
     certificates:Certificate[]|undefined
     subscriptions:Subscription[]|undefined,
     appliedJobsCount:number;
+    appliedJobs?:mongoose.Types.ObjectId[]
     resume:string;
     isVerified: boolean;
     isBlocked: boolean;
-    workExperience?:Array<workExperience>
+    workExperience?:Array<workExperience>,
+    createdAt:Date,
+    updatedAt:Date
 }
 
 const workExperienceSchema:Schema<workExperience> = new Schema({
@@ -59,15 +61,15 @@ const DeveloperSchema: Schema<IDeveloper> = new Schema({
     qualification:{type:String},
     skills: { type: [String] },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
-    // completedWorks: { type: [String] },
     subscriptions:{type:Array},
     certificates:{type:Array},
     workExperience:{type:[workExperienceSchema]},
     resume:{type:String},
     appliedJobsCount:{type:Number,default:0},
+    appliedJobs:[{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
-});
+},{ timestamps: true });
 
 const Developer = mongoose.model<IDeveloper>('Developer', DeveloperSchema);
 

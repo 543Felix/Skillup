@@ -5,7 +5,8 @@ import { companyData,MySessionData,OTP } from '../types/interface'
 import { registerHelper } from '../helper/registationHelper'
 import Otp from '../models/otpSchema'
 import { AnyError, ObjectId } from 'mongodb'
-import Chat from '../models/chatSchema'
+import Job from '../models/jobsSchema'
+import Proposal from '../models/proposalSchema'
 
 const registation=async(req:Request,res:Response):Promise<Response<any, Record<string, any>>|undefined>=>{
    const { companyName,companyType,noOfEmployes, email, phoneNo, password }:companyData = req.body
@@ -242,13 +243,108 @@ const resendOtp = async(req:Request,res:Response)=>{
   
 }
 
+const dashBoardData = async(req:Request,res:Response)=>{
+  const {id} = req.query
+  const jobsCount = await Job.aggregate([
+    { $match: { companyId: new ObjectId(id as string) } },
+    { $count: "totalJobs" }
+  ]);
+  
+  const totalAppliedDevCounts = await Proposal.aggregate([
+    {
+      $lookup: {
+        from: 'jobs',
+        localField: 'jobId',
+        foreignField: '_id',
+        as: 'jobDetails'
+      }
+    },
+    {
+      $unwind: "$jobDetails"
+    },
+    {
+      $match: {
+        "jobDetails.companyId": new ObjectId(id as string)
+      }
+    },
+    {
+      $facet: {
+        totalAppliedCount: [
+          {
+            $count: 'count'
+          }
+        ],
+        selectedAppliedCount: [
+          {
+            $match: {
+              status: 'selected'
+            }
+          },
+          {
+            $count: 'count'
+          }
+        ]
+      }
+    }
+  ]);
+  const totaljobsApplied = totalAppliedDevCounts[0]?.totalAppliedCount[0]?.count
+  const selectedCount =  totalAppliedDevCounts[0]?.selectedAppliedCount[0]?.count
+ res.json({totaljobsApplied,selectedCount,jobsCount:jobsCount[0]?.totalJobs})
+}
 
-//chats 
-// const getChats = (req:Request,res:Response)=>{
-// const {Id} = req.params
-// const objectId = new ObjectId(Id)
-// Chat.aggregate([{$match:{senderId:objectId}}])
-// } 
+const appliedJobsChart =  async(req:Request,res:Response)=>{
+ const {companyId ,range} = req.query
+
+ try{
+ const validRanges = ["last7days", "last30days", "last90days", "allTime"] as const;
+ if (!validRanges.includes(range as any)) {
+   return res.status(400).json({ error: "Invalid range parameter" });
+ }
+
+ const rangeFilter = range !== 'allTime' ? {
+   createdAt: {
+     $gte: new Date(new Date().setDate(new Date().getDate() - (
+       range === "last7days" ? 7 : range === "last30days" ? 30 : 90
+     )))
+   }
+ } : {};
+
+ // Aggregate query to get the count of applied jobs grouped by job post name
+ const totalAppliedDevCounts = await Proposal.aggregate([
+   {
+     $lookup: {
+       from: 'jobs',
+       localField: 'jobId',
+       foreignField: '_id',
+       as: 'jobDetails'
+     }
+   },
+   {
+     $unwind: "$jobDetails"
+   },
+   {
+     $match: {
+       "jobDetails.companyId": new ObjectId(companyId as string),
+       ...rangeFilter
+     }
+   },
+   {
+     $group: {
+       _id: "$jobId", // Group by job post name
+       count: { $sum: 1 } // Count the number of proposals
+     }
+   }
+ ]);
+
+ res.json(totalAppliedDevCounts);
+} catch (error) {
+ console.error('Error fetching applied dev counts:', error);
+ res.status(500).json({ error: 'Server error' });
+}
+}
+
+
+
 export const companyController={
     registation,
     verifyRegistration,
@@ -259,7 +355,9 @@ export const companyController={
     updateProfileData,
     updateAbout,
     uploadCertificates,
-    updateSpecialties,
+    updateSpecialties,  
     resendOtp,
-    isBlocked
+    isBlocked,
+    dashBoardData,
+    appliedJobsChart
 }

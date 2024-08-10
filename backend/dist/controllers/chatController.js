@@ -234,10 +234,20 @@ const DeleteMessage = (req, res) => {
         res.status(200).json({ message: 'chat Deleted' });
     });
 };
+const unReadMessagesCount = (req, res) => {
+    const { id } = req.params;
+    chatSchema_1.default.aggregate([
+        { $match: { receiverId: new mongodb_1.ObjectId(id), isViewed: false } },
+        { $group: { _id: '$senderId', count: { $sum: 1 } } },
+    ]).then((data) => {
+        res.status(200).json(data);
+    });
+};
 exports.ChatController = {
     getAllChats,
     sendMessage,
     getIndividualMessages,
     setMessageViewed,
-    DeleteMessage
+    DeleteMessage,
+    unReadMessagesCount
 };
