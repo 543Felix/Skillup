@@ -53,8 +53,11 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@types/chart.js": "^2.9.41",
+    "@types/query-string": "^6.2.0",
     "@types/react": "^18.2.66",
     "@types/react-avatar-editor": "^13.0.2",
+    "@types/react-chartjs-2": "^2.0.2",
     "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^18.2.22",
     "@types/react-redux": "^7.1.33",
