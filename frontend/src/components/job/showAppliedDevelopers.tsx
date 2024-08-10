@@ -55,7 +55,7 @@ const AppliedDevelopers:React.FC<Props> = ({jobId,jobName,hidePage})=>{
       .then((res) => {
         const copyOfData = [...data];
         const updatedData = copyOfData.map((item) => {
-          if (item.developer._id === devId) {
+          if (item.developerId === devId) {
             return {
               ...item,
               status: status

@@ -20,7 +20,6 @@ const [individualData,setIndividualData] = useState<DeveloperData>({
     role: '',
     description: '',
     skills: [],
-    completedWorks: [],
     isVerified: false,
     isBlocked: false,
 })

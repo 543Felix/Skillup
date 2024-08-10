@@ -61,7 +61,6 @@ const initializeSocket = (httpServer) => {
                 });
             }
             catch (error) {
-                console.log('error');
             }
         }));
         socket.on('deleteMsg', (data, callback) => __awaiter(void 0, void 0, void 0, function* () {
@@ -110,7 +109,6 @@ const initializeSocket = (httpServer) => {
             const { _id, name } = data;
             const { randomUUID } = new short_unique_id_1.default();
             const roomId = randomUUID();
-            console.log('roomId = ', roomId);
             const startDate = new Date();
             meetings.set(roomId, { members: [{ _id, name }], startDate: startDate });
             const newMeeting = new meetingShema_1.default({

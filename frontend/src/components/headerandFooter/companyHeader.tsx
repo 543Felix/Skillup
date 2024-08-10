@@ -1,4 +1,4 @@
-import React,{useState,useEffect,Dispatch,SetStateAction, useContext} from'react'
+import React,{useState,Dispatch,SetStateAction, useContext} from'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleXmark } from '@fortawesome/free-regular-svg-icons'
 import { faAngleUp, faBell,faAngleDown } from "@fortawesome/free-solid-svg-icons";
@@ -60,22 +60,9 @@ return(
               
               <img className="h-[55px] " src='/developer/logo.png' alt="" />
             </Link>  
-            {/* <div className='relative'>
-            <input type="text" className='ml-[30px] h-[40px] w-[280px] border-2 border-violet focus:outline-none  focus:ring-0 focus:border-violet text-white placeholder:text-white bg-transparent rounded-[8px] justify-self-start pl-[40px]' placeholder='Search' />
-            <FontAwesomeIcon icon={faMagnifyingGlass} className='absolute left-10 top-3' />
-            </div> */}
-            {/* </div> */}
             
           <ul className="items-stretch hidden space-x-5 lg:flex  ">
-            {/* <li className="flex">
-              <a
-                rel="noopener noreferrer"
-                href="#"
-                className="flex items-center px-2 -mb-1 border-b-2 font-semibold text-sm"
-              >
-                Developers
-              </a>
-            </li> */}
+           
              <li className="flex items-center  -mb-1  font-semibold text-md">
               <Link to={'/company/dashboard'}>
                 Dashboard
@@ -91,9 +78,7 @@ return(
                  My posts
                  </Link>
             </li>
-            {/* <li className="flex  items-center  -mb-1  font-semibold text-md">
-                Schedules
-            </li> */}
+           
             <li className="flex  items-center  -mb-1  font-semibold text-md">
               <Link to={'/company/chats'}>
               <span className="relative inline-block">
@@ -101,7 +86,6 @@ return(
       {unreadMesCount.length>0&&(<span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">{unreadMesCount.length}</span>)}
 </span>
               </Link>
-              {/* unreadMesCount */}
             </li>
             <li className="flex items-center  -mb-1  font-semibold text-md">
                <Link to={'/company/meeting'}>Meetings</Link> 
@@ -140,9 +124,7 @@ return(
         </div>
       )}
           
-          {/* <button className='border-2 border-violet px-4 py-1 rounded-[8px]' onClick={LogOut}>Log out</button> */}
           <Link to={'/company/createJob'}><button className='border-2 border-violet px-4 py-1 rounded-[8px]'>Create job</button></Link>
-          {/* <button className='bg-violet text-white px-3 py-1 rounded-[5px]' onClick={(e)=>LogOut(e)}> Log out</button> */}
           </div>
           </div>
           <div className='flex items-center space-x-4  lg:hidden'>
@@ -206,7 +188,6 @@ return(
     </div>
 </div>
             ))}
-            {/* Add more notifications here */}
           </ul>
         )}
       </div>

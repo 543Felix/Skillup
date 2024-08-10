@@ -6,7 +6,6 @@ import { useEffect, useState, useCallback } from "react";
 import AxiosInstance from "../../../utils/axios";
 // import { jobDetails } from "../../../types/interface"
 import { useNavigate } from "react-router-dom";
-import moment from "moment";
 
 interface ProposalData {
   _id: string;

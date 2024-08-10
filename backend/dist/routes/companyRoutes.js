@@ -16,26 +16,26 @@ companyRoute.post('/logOut', companyControllers_1.companyController.logOut);
 companyRoute.post('/resendOtp', companyControllers_1.companyController.resendOtp);
 companyRoute.get('/isBlocked/:id', companyControllers_1.companyController.isBlocked);
 // Profile
-companyRoute.get('/profile', companyControllers_1.companyController.profile);
-companyRoute.post('/uploadProfile', companyControllers_1.companyController.uploadProfilePic);
-companyRoute.post('/profileData', companyControllers_1.companyController.updateProfileData);
-companyRoute.post('/updateAbout', companyControllers_1.companyController.updateAbout);
-companyRoute.post('/uploadCertificates', companyControllers_1.companyController.uploadCertificates);
-companyRoute.post('/updateSpecialties', companyControllers_1.companyController.updateSpecialties);
+companyRoute.get('/profile', companyAuth_1.default, companyControllers_1.companyController.profile);
+companyRoute.post('/uploadProfile', companyAuth_1.default, companyControllers_1.companyController.uploadProfilePic);
+companyRoute.post('/profileData', companyAuth_1.default, companyControllers_1.companyController.updateProfileData);
+companyRoute.post('/updateAbout', companyAuth_1.default, companyControllers_1.companyController.updateAbout);
+companyRoute.post('/uploadCertificates', companyAuth_1.default, companyControllers_1.companyController.uploadCertificates);
+companyRoute.post('/updateSpecialties', companyAuth_1.default, companyControllers_1.companyController.updateSpecialties);
 //job
-companyRoute.get('/getJob/:id', jobControllers_1.jobController.getJob);
-companyRoute.get('/allJobs/:id', companyAuth_1.default, jobControllers_1.jobController.companyJobs);
-companyRoute.patch('/setStatus', jobControllers_1.jobController.setJobStatus);
-companyRoute.delete('/deleteJob/:id', jobControllers_1.jobController.deleteJob);
-companyRoute.post('/createJob/:id', jobControllers_1.jobController.createJob);
-companyRoute.post('/editJob/:id', jobControllers_1.jobController.editJob);
-companyRoute.post('/createQuiz/:id', jobControllers_1.jobController.createQuiz);
-companyRoute.get('/appliedDevelopers/:jobId', jobControllers_1.jobController.getAppliedDevelopers);
-companyRoute.patch('/changeProposalStatus/:jobId', jobControllers_1.jobController.changeProposalStatus);
+companyRoute.get('/getJob/:id', companyAuth_1.default, jobControllers_1.jobController.getJob);
+companyRoute.get('/allJobs/:id', companyAuth_1.default, companyAuth_1.default, jobControllers_1.jobController.companyJobs);
+companyRoute.patch('/setStatus', companyAuth_1.default, jobControllers_1.jobController.setJobStatus);
+companyRoute.delete('/deleteJob/:id', companyAuth_1.default, jobControllers_1.jobController.deleteJob);
+companyRoute.post('/createJob/:id', companyAuth_1.default, jobControllers_1.jobController.createJob);
+companyRoute.post('/editJob/:id', companyAuth_1.default, jobControllers_1.jobController.editJob);
+companyRoute.post('/createQuiz/:id', companyAuth_1.default, jobControllers_1.jobController.createQuiz);
+companyRoute.get('/appliedDevelopers/:jobId', companyAuth_1.default, jobControllers_1.jobController.getAppliedDevelopers);
+companyRoute.patch('/changeProposalStatus/:jobId', companyAuth_1.default, jobControllers_1.jobController.changeProposalStatus);
 // All Developers 
-companyRoute.get('/allDevelopers', developerControllers_1.developerController.getDevelopers);
-companyRoute.get('/devProfile', developerControllers_1.developerController.profile);
+companyRoute.get('/allDevelopers', companyAuth_1.default, developerControllers_1.developerController.getDevelopers);
+companyRoute.get('/devProfile', companyAuth_1.default, developerControllers_1.developerController.profile);
 //Dashboard
-companyRoute.get('/dashboard', companyControllers_1.companyController.dashBoardData);
-companyRoute.get('/jobChart', companyControllers_1.companyController.appliedJobsChart);
+companyRoute.get('/dashboard', companyAuth_1.default, companyControllers_1.companyController.dashBoardData);
+companyRoute.get('/jobChart', companyAuth_1.default, companyControllers_1.companyController.appliedJobsChart);
 exports.default = companyRoute;

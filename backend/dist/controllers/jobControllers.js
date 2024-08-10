@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.jobController = void 0;
 const mongodb_1 = require("mongodb");
 const jobsSchema_1 = __importDefault(require("../models/jobsSchema"));
-const slotsSchema_1 = __importDefault(require("../models/slotsSchema"));
 const developerSchema_1 = __importDefault(require("../models/developerSchema"));
 const proposalSchema_1 = __importDefault(require("../models/proposalSchema"));
 const setAppliedJobCount = (id) => __awaiter(void 0, void 0, void 0, function* () {
@@ -378,20 +377,6 @@ const getQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: 'An error occured while fetching data' });
     }
 });
-const getSlots = (req, res) => {
-    try {
-        const { id } = req.query;
-        const objectId = new mongodb_1.ObjectId(String(id));
-        slotsSchema_1.default.aggregate([{ $match: { job_id: objectId } }]).then((data) => {
-            res.status(200).json({ data });
-        }).catch(() => {
-            res.status(404).json({ message: 'invalidCredentials' });
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
 const setJobStatus = (req, res) => {
     try {
         const { id } = req.query;
@@ -505,21 +490,6 @@ const getSubmitedProposal = (req, res) => {
         res.status(200).json({ data });
     });
 };
-// const showQuizAttendedDevelopers = (req:Request,res:Response)=>{
-//    const {jobId,devId} = req.params
-//    const JobID = new ObjectId(jobId as string)
-//    const DevID = new ObjectId(devId as string)
-//     Job.findOne({
-//             _id: JobID,
-//             quizAttendedDevs: { $elemMatch: { $eq: DevID } }
-//         }).then((data)=>{
-//          if(data?.quizAttendedDevs.includes(DevID)){
-//            res.status(401).json({message:'you have already attended the quiz'})
-//          }else{
-//             res.status(200).json({message:''})
-//          }
-//         })
-// }
 const getAppliedJobsCount = (req, res) => {
     const { devId } = req.params;
     developerSchema_1.default.aggregate([{
@@ -551,7 +521,6 @@ exports.jobController = {
     getQuiz,
     companyJobs,
     setJobStatus,
-    getSlots,
     getJob,
     saveJob,
     unSaveJob,
@@ -564,6 +533,5 @@ exports.jobController = {
     changeProposalStatus,
     getSubmitedProposal,
     getIndividualJob,
-    // showQuizAttendedDevelopers,
     getAppliedJobsCount,
 };

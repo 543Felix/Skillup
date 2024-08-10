@@ -14,44 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.meetingController = void 0;
 const meetingShema_1 = __importDefault(require("../models/meetingShema"));
-const JoinRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { _id, name, roomId } = req.body;
-    try {
-        const callAlreadyExists = yield meetingShema_1.default.find({ roomId: roomId, isCallEnded: false });
-        if (!callAlreadyExists || callAlreadyExists.length === 0) {
-            const newMeeting = new meetingShema_1.default({
-                roomId: roomId,
-                createdBy: name,
-                members: [{ _id, name }]
-            });
-            newMeeting.save().then(() => {
-                return res.status(201).json({ message: 'successfully saved' });
-            });
-        }
-        else {
-            meetingShema_1.default.findOneAndUpdate({ roomId: roomId, isCallEnded: false }, {
-                $addToSet: { members: { _id, name } }
-            })
-                .then(() => {
-                res.status(201).json({ message: 'succesfully added new user' });
-            });
-        }
-    }
-    catch (error) {
-    }
-});
-const endMeeting = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { roomId, duration } = req.body;
-    try {
-        meetingShema_1.default.findOneAndUpdate({ roomId: roomId, isCallEnded: false }, { isCallEnded: true, callDuration: duration })
-            .then(() => {
-            res.status(201).json({ message: 'successfully updated' });
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-});
 const getMeetingHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     meetingShema_1.default.aggregate([
@@ -92,7 +54,5 @@ const getMeetingHistory = (req, res) => __awaiter(void 0, void 0, void 0, functi
     });
 });
 exports.meetingController = {
-    JoinRoom,
-    endMeeting,
     getMeetingHistory
 };
