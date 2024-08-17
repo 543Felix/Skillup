@@ -96,6 +96,8 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
                     }
                 }, {
                     $sort: Sort !== null && Sort !== void 0 ? Sort : 1
+                }, {
+                    $sort: { createdAt: -1 }
                 }
             ], { collation: { locale: "en", strength: 2 } })
                 .then((data) => {

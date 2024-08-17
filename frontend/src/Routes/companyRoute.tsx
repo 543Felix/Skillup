@@ -40,11 +40,7 @@ const CompanyRoute: React.FC = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  // const fetchNotification = useCallback(()=>{
-  //   AxiosInstance.get(`/notifications/${userId}/developers`).then((res) => {
-  //     setNotifications(res.data);
-  //   });
-  //  },[userId])
+  
   
 
   const fetchUnReadMessages = useCallback(()=>{
@@ -52,7 +48,6 @@ const CompanyRoute: React.FC = () => {
     AxiosInstance.get(`/chat/unReadChat/${userId}`)
     .then((res)=>{
       if(res.data){
-        console.log('unReadMes on company = ',res.data)
         setUnReadMesCount(res.data)
       }
     })
@@ -74,10 +69,10 @@ const CompanyRoute: React.FC = () => {
     socket.on("unReadMes", async (sender) => {
       console.log('message recieved from = ',sender)
       setUnReadMesCount((prevState) => {
-        const i = prevState.findIndex((item) => item.sender === sender);
-    
+        const i = prevState.findIndex((item) => item._id === sender.senderId);
+        console.log('index = ',i)
+        console.log('prevState = ',prevState)
         if (i !== -1) {
-          // Update the count for the existing sender
           return prevState.map((item, index) => {
             if (index === i) {
               return {
@@ -88,13 +83,13 @@ const CompanyRoute: React.FC = () => {
             return item;
           });
         } else {
-          // Add a new sender to the list
           return [
             ...prevState,
-            { sender: sender, count: 1 },
+            { _id: sender.senderId, count: 1 },
           ];
         }
       });
+      
     });
     
     
@@ -133,7 +128,7 @@ AxiosInstance.interceptors.response.use(
     });
   }, [data, userId]);
   
-   
+  console.log('unReadMessages = ',unreadMesCount)
    
 
   return (

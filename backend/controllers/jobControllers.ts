@@ -96,7 +96,9 @@ if(sort){
               }
             },{
                $sort : Sort??1
-            } 
+            },{
+               $sort:{createdAt:-1}
+            }
           ],{ collation: { locale: "en", strength: 2 } })
           .then((data)=>{
             const savedJobs  = devData?.savedJobs

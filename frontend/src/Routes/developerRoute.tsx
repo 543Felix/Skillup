@@ -59,7 +59,6 @@ const DeveloperRoute: React.FC = () => {
     AxiosInstance.get(`/chat/unReadChat/${userId}`)
     .then((res)=>{
       if(res.data){
-        console.log('unReadMes on company = ',res.data)
         setUnReadMesCount(res.data)
       }
     })
@@ -78,10 +77,10 @@ const DeveloperRoute: React.FC = () => {
     socket.on("unReadMes", async (sender) => {
       console.log('message recieved from = ',sender)
       setUnReadMesCount((prevState) => {
-        const i = prevState.findIndex((item) => item.sender === sender);
-    
+        const i = prevState.findIndex((item) => item._id === sender.senderId);
+        console.log('index = ',i)
+        console.log('prevState = ',prevState)
         if (i !== -1) {
-          // Update the count for the existing sender
           return prevState.map((item, index) => {
             if (index === i) {
               return {
@@ -92,13 +91,13 @@ const DeveloperRoute: React.FC = () => {
             return item;
           });
         } else {
-          // Add a new sender to the list
           return [
             ...prevState,
-            { sender: sender, count: 1 },
+            { _id: sender.senderId, count: 1 },
           ];
         }
       });
+      
     });
 
 
@@ -132,6 +131,7 @@ AxiosInstance.interceptors.response.use(
   
 
 
+  console.log('unReadMessages = ',unreadMesCount)
 
   useEffect(() => {
     AxiosInstance.get(`/notifications/${userId}/companies`).then((res) => {
@@ -194,7 +194,7 @@ AxiosInstance.interceptors.response.use(
             />
             <Route path='/pdfView' element={<MyPDFViewer/>}/>
             <Route path="/pricingPage" element={<MakePayment/>}/>
-              <Route path="/payment-success" element={<Paymentsucess/>}/>
+            <Route path="/payment-success" element={<Paymentsucess/>}/>
               <Route path="/payment-error" element={<Paymenterror/>}/>
          <Route path="/meeting" element={<MeetingHome role="dev" />}/>
          <Route path="/meetingHistory" element={<MeetingHistory/>}/>

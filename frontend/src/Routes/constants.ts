@@ -33,7 +33,7 @@ export interface Allchats{
 }
 
 export interface UnRead{
-  sender:string;
+  _id:string;
   count:number
 }
 

@@ -27,7 +27,7 @@ function generateToken(data) {
     const payload = {
         data
     };
-    let accessToken = jsonwebtoken_1.default.sign(payload, envvariables_1.accessTokenSecretKey, { expiresIn: '5m' });
+    let accessToken = jsonwebtoken_1.default.sign(payload, envvariables_1.accessTokenSecretKey, { expiresIn: '5s' });
     let refreshToken = jsonwebtoken_1.default.sign(payload, envvariables_1.refreshTokenSecretKey, { expiresIn: '7d' });
     let token;
     return token = {

@@ -36,7 +36,7 @@ app.use((0, express_session_1.default)({
     cookie: { secure: false }
 }));
 const corsOptions = {
-    origin: [process.env.FrontEndUrl, 'http://localhost:5173'],
+    origin: [process.env.FrontEndUrl],
     credentials: true,
     crossOriginOpenerPolicy: 'same-origin',
 };

@@ -149,7 +149,7 @@ return(
             <h1 className="text-white text-lg font-bold">Add Cover Letter</h1>
             <textarea name="" id="" rows={8} className=" my-5 resize-none rounded-md" onChange={(e)=>setCoverLetter(e.target.value)}></textarea>
             <div>
-            <button className="text-white bg-violet px-5 py-1" onClick={()=>setResumeAddModal(true)}>{resume.length>0?'change Resume':'Add Resume'}</button>
+            <button className="text-white bg-violet px-5 py-1" onClick={()=>setResumeAddModal(true)}>{resume&&resume.length>0?'change Resume':'Add Resume'}</button>
             </div>
             <div className="flex justify-end">
             <button className="text-white bg-violet px-3 py-1 rounded-[5px]" onClick={sendProposal}>Send proposal</button> 

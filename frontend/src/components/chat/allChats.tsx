@@ -14,7 +14,7 @@ interface Props {
 
 const Chat:React.FC<Props> =React.memo(({role})=>{
    const context = useContext(role==='companies'?companyContext:devcontext)
-   const {allChats,setAllchats} = context
+   const {allChats,setAllchats,unreadMesCount} = context
    const [typerId,setTyperID] =useState<string[]>([])
     const senderId = useSelector((state:RootState)=>{
         return role==='companies'?state.companyRegisterData._id:state.developerRegisterData._id
@@ -24,6 +24,7 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
     const [name,setName] = useState<string>('')
     const [usersOnline,setUsersOnline] = useState<string[]>([])
     const receiverModel = role==='companies'?'developers':'companies'
+    // const [messCount,setMessCount] = useState<number>(0)
 
    useEffect(()=>{
       socket.on("stopTyping",async(senderId)=>{
@@ -127,17 +128,30 @@ const Chat:React.FC<Props> =React.memo(({role})=>{
     />
     <div className="w-full pb-2">
       <div className="flex justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center justify-center space-x-2">
         <span className="block ml-2 font-semibold text-base">{item.name}</span>
         {usersOnline.length>0&&usersOnline.includes(item.id)&&(
         <span className="block ml-2 font-light text-xs text-green-400">Online</span>
         )} 
+{unreadMesCount.length > 0 && (
+  <>
+    {unreadMesCount.find((mes) => mes._id === item.id) && (
+      <span className="px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+        {
+          unreadMesCount.find((mes) => mes._id === item.id)?.count
+        }
+      </span>
+    )}
+  </>
+)}
+
         </div>
         <span className="block ml-2 text-sm">{convertToLocalTime(item.createdAt)}</span>
       </div>
 <span className={`block ml-2 text-sm ${typerId.length > 0 && typerId.includes(item.id) ? 'text-green-700' : 'text-gray-400'}`}>
   {typerId.length > 0 && typerId.includes(item.id) ? 'typing...' :item.type==='message'?item.lastMessage:item.type}
 </span>
+{/* {unreadMesCount.length>0&&()} */}
     </div>
   </a>
 ))}

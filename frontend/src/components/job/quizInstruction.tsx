@@ -12,21 +12,12 @@ const QuizInstruction: React.FC<QuizProps>  = ({startQuiz }) => {
   return (
        <div className="absolute bg-black h-screen w-screen flex justify-center items-center left-0 top-0 bottom-0 z-50">
 <div className= " bg-black   backdrop-blur-xl bg-opacity-25 rounded-[20px] border shadow-md shadow-violet h-[32rem]  border-violet mx-5   p-3 font-serif text-white">
-        {/* <div className="">
-          <FontAwesomeIcon
-            icon={faArrowLeftLong}
-            className="ml-3 mt-2  h-[20px]"
-            onClick={()=>{
-              hideInstruction(false)
-            }}
-          />
-        </div> */}
         <h1 className="flex justify-center underline underline-offset-4 text-[1.5rem]  lg:text-[2.3rem] font-semibold ">
           Quiz Assessment Instructions and Rules
         </h1>
           <div className="flex flex-grid items-center px-7 md:max-w-[850px] lg:max-w-[1250px] mt-1 mb-6">
             <img
-              src="../company/quiz.png"
+              src="../../../public/company/quiz.png"
               className="lg:mx-8 md:mx-3 sm:h-[150px] md:h-[200px] lg:h-[270px]"
               alt="Quiz"
             />

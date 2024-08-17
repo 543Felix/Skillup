@@ -57,7 +57,7 @@ const startIndividualChat = (e:React.MouseEvent<HTMLButtonElement>,id :string,na
     <div className="flex flex-col space-y-4 p-3 items-center">
       <img className="h-[110px] w-[110px] rounded-full" src={data.image} alt={data.name} />
       <div className="flex flex-col space-y-1 items-center">
-        <h1 className="text-3xl font-semibold">{data.name}</h1>
+        <h1 className="text-2xl font-semibold">{data.name}</h1>
         <span className="text-sm">{data.role}</span>
       </div>
       <div>

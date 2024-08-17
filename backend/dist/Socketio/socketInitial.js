@@ -55,9 +55,10 @@ const initializeSocket = (httpServer) => {
                     .then((data) => {
                     const receiver = socketUsers.get(receiverId);
                     const { _id, content, createdAt, isViewed, type } = data;
-                    callback({ senderId, receiverId, _id, content, createdAt, isViewed, type });
+                    socket.to(receiver).emit('unReadMes', { senderId });
                     socket.to(receiver).emit('newMessage', { senderId, receiverId, _id, content, createdAt, isViewed, type });
-                    socket.to(receiver).emit('unReadMes', senderId);
+                    console.log('receiver = ', receiver);
+                    callback({ senderId, receiverId, _id, content, createdAt, isViewed, type });
                 });
             }
             catch (error) {

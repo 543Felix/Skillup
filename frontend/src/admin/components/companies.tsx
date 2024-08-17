@@ -111,7 +111,7 @@ const Companies: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {data.map((item) => (
+                        {data&&data.map((item) => (
                           <tr key={item._id}>
                             <td className="px-6 py-4 whitespace-no-wrap text-sm leading-5" onClick={()=>getCompanyData(item._id)}>
                               <p>{item.companyName}</p>

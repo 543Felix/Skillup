@@ -21,10 +21,26 @@ const Registration = async (req: Request, res: Response):Promise<Response<any, R
   try {
     let data = await Developer.findOne({ name: name });
     if (data) {
-     return res.status(400).json({ message: "user already exists" });
+      if(data.isVerified===false){
+        (req.session as MySessionData).developersessionData = {
+          name: name,
+          email: email
+        };
+        let otp: number = registerHelper.generateOtp();
+        console.log('otp = ',otp)
+      await new Otp({
+          otp: otp,
+          name: name
+        }).save();
+         registerHelper.sendOTP(email, otp).then(()=>{
+          res.status(200).json({ message: "check your mail for otp"});
+         })
+      }else{
+        return res.status(400).json({ message: "user already exists" });
+      }
     } else {
+
       const hashedPassword = await bcrypt.hash(password, 10);
-   
       const startDate = new Date()
       let endDate = new Date(startDate)
       endDate.setDate(endDate.getDate()+28)
@@ -126,7 +142,7 @@ const verifyRegistration= async(req:Request,res:Response):Promise<Response<any, 
          }
          
         }else{
-         return res.status(401).json({message:'invalid otp'})
+         return res.status(400).json({message:'invalid otp'})
         }
        
      }
@@ -447,8 +463,8 @@ const session = await stripe.checkout.sessions.create({
     },
   ],
   mode: 'payment',
-  success_url: `${process.env.FrontEndUrl}/dev/payment-success`,
-  cancel_url: `${process.env.FrontEndUrl}/dev/payment-error`,
+  success_url: `${process.env.FrontEndUrl}dev/payment-success`,
+  cancel_url: `${process.env.FrontEndUrl}dev/payment-error`,
 }); 
 
  if(session.id){

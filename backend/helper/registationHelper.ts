@@ -15,7 +15,7 @@ function generateToken(data:tokenData){
     const payload ={
       data
     }
-      let accessToken = jwt.sign(payload,accessTokenSecretKey,{expiresIn:'5m'})
+      let accessToken = jwt.sign(payload,accessTokenSecretKey,{expiresIn:'5s'})
       let refreshToken = jwt.sign(payload,refreshTokenSecretKey,{expiresIn:'7d'})
       let token
     return  token={

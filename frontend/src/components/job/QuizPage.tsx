@@ -6,8 +6,10 @@ import QuizInstruction from './quizInstruction';
 import AxiosInstance from '../../../utils/axios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
+import { useNavigate } from 'react-router-dom';
 // import { useLocation } from 'react-router-dom';
 import ProposalPage from './proposalPage'; 
+import Loader from '../../pages/loader';
 
 interface Props{
   jobId?:string;
@@ -30,6 +32,7 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
   const devId = useSelector((state: RootState) => {
     return state.developerRegisterData._id;
   });
+  const navigate = useNavigate()
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState('');
   const [passingScore, setPassingScore] = useState(0);
@@ -41,22 +44,26 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
   const hasEndedRef = useRef(false);
   const [strokeDasharray, setStrokeDasharray] = useState("0, 100");
   const [showProposalPage,setShowProposalPage] = useState(false)
- 
-  useEffect(() => {
-    let isMounted = true; // Add a flag to ensure cleanup on unmount
+  const [loader,setLoader] = useState<boolean>(false)
+
+
+   const fetchQuestions  = useCallback(()=>{
+    setLoader(true)
     AxiosInstance.get(`/dev/getQuiz/${devId}/${jobId}`)
-      .then((res) => {
-        if (isMounted) {
-          console.log('quiz questions = ', res.data.Quiz);
-          setQuestions(res.data.Quiz.questions);
-          setPassingScore(res.data.Quiz.passingScore);
-        }
-      })
-      .catch((error) => console.error('Error fetching data:', error));
-    return () => {
-      isMounted = false; 
-    };
-  }, [devId, jobId]);
+    .then((res) => {
+        console.log('quiz questions = ', res.data.Quiz);
+        setQuestions(res.data.Quiz.questions);
+        setPassingScore(res.data.Quiz.passingScore);
+    })
+    .catch((error) => console.error('Error fetching data:', error))
+    .finally(()=>setLoader(false))
+   },[devId, jobId])
+
+  useEffect(() => {
+    fetchQuestions()
+
+    
+  }, [fetchQuestions]);
 
   const enterFullScreen = () => {
     const element = document.documentElement as HTMLElement & {
@@ -138,7 +145,9 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
       cleanupEventListeners();
     };
   }, [quizStarted]);
+ 
 
+   
   useEffect(() => {
     const percentage = (time / 30) * 100;
     setStrokeDasharray(`${percentage}, 100`);
@@ -187,11 +196,16 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
     setSelectedOption(option);
   };
 
-  
+  const backToHome = ()=>{
+    exitFullScreen()
+    navigate('/dev/job')
+  }
 
   if (quizEnded) {
     return (
-      <div className="h-[31.5rem]  flex justify-center items-center  p-5 text-white border-2 border-violet rounded-[28px] shadow-lg shadow-violet">
+
+      <div className='absolute top-0 left-0 right-0 bottom-0 h-screen w-screen flex items-center justify-center z-40 bg-black'>
+        <div className="h-[31.5rem] w-4/6 flex justify-center items-center  p-5 text-white border-2 border-violet rounded-[28px] shadow-lg shadow-violet">
         <div className='h-[200px] flex flex-col w-[300px] space-y-1 justify-center bg-white rounded-[15px] shadow-custom-black items-center text-black'>
 
           {score >= passingScore ?
@@ -211,78 +225,97 @@ const Quiz:React.FC<Props> = ({jobId,displayJobComponent=()=>{}})=>{
               <FontAwesomeIcon className='text-red-500 h-14' icon={faCircleXmark} />
               <h2 className='text-3xl text-red-500 font-semibold'>Rejected</h2>
               <p className='text-xl'>Your score: {score}/{questions.length}</p>
+              <button className='bg-green-600 px-4 py-1 text-white font-semibold rounded-[5px]' onClick={backToHome}>Back to home</button>
             </>
           }
         </div>
 
       </div>
+      </div>
+      
     );
   }
+
 
   
   return (
     quizStarted ?
-      <div className="h-[31.5rem] absolute top-0 left-0 right-0 backdrop-blur-xl z-50 flex flex-col mx-[12rem] my-[100px] p-5 text-white border-2 border-violet rounded-[28px] shadow-md shadow-violet">
-        <div className='flex justify-end'>
-          <div className="right-6 flex justify-center items-center h-[70px] w-[70px] rounded-full ">
-          {time !== 0 && (
-                    <svg className="absolute" width="70" height="70" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        style={{
-                          fill: "none",
-                          stroke: "transparent",
-                          strokeWidth: 1,
-                          strokeLinecap: "round",
-                        }}
-                      />
-                      <path
-                        strokeDasharray={strokeDasharray}
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        style={{
-                          fill: "none",
-                          stroke: "#7f00ff",
-                          strokeWidth: 1,
-                          strokeLinecap: "round",
-                        }}
-                      />
-                    </svg>
-                  )}
-                  <span className="font-mono text-4xl">{time}</span>
+    <div className='absolute  top-0 left-0 right-0 bottom-0 h-screen w-screen flex items-center justify-center z-40 bg-black'>
+    <div className=" h-[31.5rem] w-4/6 absolute flex flex-col mx-[12rem] my-[100px] p-5 text-white border-2 border-violet rounded-[28px] shadow-md shadow-violet"> 
+    {loader===false?
+      <>
+      <div className='flex justify-end'>
+            <div className="right-6 flex justify-center items-center h-[70px] w-[70px] rounded-full ">
+            {time !== 0 && (
+                      <svg className="absolute" width="70" height="70" viewBox="0 0 36 36">
+                        <path
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                          style={{
+                            fill: "none",
+                            stroke: "transparent",
+                            strokeWidth: 1,
+                            strokeLinecap: "round",
+                          }}
+                        />
+                        <path
+                          strokeDasharray={strokeDasharray}
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                          style={{
+                            fill: "none",
+                            stroke: "#7f00ff",
+                            strokeWidth: 1,
+                            strokeLinecap: "round",
+                          }}
+                        />
+                      </svg>
+                    )}
+                    <span className="font-mono text-4xl">{time}</span>
+            </div>
           </div>
-        </div>
-
-        <div className='h-[400px]'>
-          <h2 className="text-2xl font-bold mb-4">{questions[currentQuestion]?.question}</h2>
-          <ul>
-            {questions[currentQuestion]?.options.map((option, index) => (
-              <li key={index} className='py-2'>
-                <label className='flex items-center space-x-2 cursor-pointer'>
-                  <input
-                    type="radio"
-                    value={option}
-                    checked={selectedOption === option}
-                    onChange={() => handleOptionChange(option)}
-                    className='form-radio'
-                  />
-                  <span>{option}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={handleSubmit}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
-           
-          >
-            Next <FontAwesomeIcon icon={faArrowRightLong} />
-          </button>
-        </div>
+  
+          <div className='h-[400px] flex flex-col justify-center items-center text-white'>
+            <h1 className='text-3xl font-semibold'>{`${currentQuestion+1}/${questions.length}`}</h1>
+            <div className='flex flex-col'>
+            <h2 className="text-2xl font-bold mb-4">{questions[currentQuestion]?.question}</h2>
+            <ul className='self-start'>
+              {questions[currentQuestion]?.options.map((option, index) => (
+                <li key={index} className='py-2'>
+                  <label className='flex items-center space-x-2 cursor-pointer'>
+                    <input
+                      type="radio"
+                      value={option}
+                      checked={selectedOption === option}
+                      onChange={() => handleOptionChange(option)}
+                      className='form-radio'
+                    />
+                    <span>{option}</span>
+                  </label>
+                </li>
+              ))}  
+            </ul>
+            <button
+              onClick={handleSubmit}
+              className="mt-4 px-4 py-2 bg-blue-500 self-end  rounded-md"
+             
+            >
+              Next <FontAwesomeIcon icon={faArrowRightLong} />
+            </button>
+            </div>
+            
+          </div>
+      </>
+      :
+      <Loader />
+    }
+    
+       
       </div>
+      </div>
+      
       :
       <QuizInstruction startQuiz={startQuiz} />
   );

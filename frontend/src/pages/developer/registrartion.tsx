@@ -161,9 +161,6 @@ const Register = ()=>{
       <Loader/>
     )}
      <div className="flex flex-col justify-center items-center  text-[#333] lg:h-screen p-6">
-      {/* <div className="grid md:grid-cols-2 gap-y-8 max-w-6xl w-full shadow-custom-black rounded-[15px]">  */}
-      {/* <div className=" max-md:order-1 flex flex-col justify-center sm:p-6 p-4 bg-[url('../developer/registration.jpg')] rounded-l-[15px] bg-cover w-full h-full space-y-16">
-        </div> */}
         <form className=" sm:p-6 w-1/2 p-4 bg-baseBaground bg-opacity-[15%]  rounded-[30px] shadow-custom-black " onKeyDown={handleKeyPress}>
           <div className="mb-8">
             <h3 className="text-violet text-3xl font-extrabold max-md:text-center">Register</h3>
@@ -188,12 +185,12 @@ const Register = ()=>{
             <div className="relative">
               <label className="text-sm mb-2 block text-white">Password</label>
               <input name="password" value={formData.password} type={showPassword===false?"password":'text'} className="bg-gray-100 w-full text-sm px-4 py-3 rounded-md " onChange={handleInputChange} placeholder="Enter password" />
-              <FontAwesomeIcon className="absolute right-2 text-black mt-[15px]" icon={showPassword===false?faEyeSlash:faEye} onClick={()=>setShowPassword(!showPassword)} />
+              <FontAwesomeIcon className="absolute right-2 text-black mt-[15px]" icon={showPassword===false?faEye:faEyeSlash} onClick={()=>setShowPassword(!showPassword)} />
             </div>
             <div className="relative">
               <label className="text-sm mb-2 block text-white">Confirm Password</label>
               <input name="confirmPassword" value={formData.confirmPassword} type={showCPassword===false?"password":"text"} className="bg-white w-full text-sm px-4 py-3 rounded-md " onChange={handleInputChange} placeholder="Enter confirm password" />
-              <FontAwesomeIcon className="absolute right-2 text-black mt-[15px]" icon={showCPassword===false?faEyeSlash:faEye} onClick={()=>setShowCPassword(!showCPassword)} />
+              <FontAwesomeIcon className="absolute right-2 text-black mt-[15px]" icon={showCPassword===false?faEye:faEyeSlash} onClick={()=>setShowCPassword(!showCPassword)} />
             </div>
           </div>
           <div className="flex justify-center mt-3">

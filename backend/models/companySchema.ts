@@ -11,7 +11,7 @@ const companySchema = new Schema({
     overview:{type:String,default:''},
     specialties:{type:Array,default:[]},
     certificates:{type:Array,default:[]},
-    image:{type:String,default:''},
+    image:{type:String,default:'https://res.cloudinary.com/dsnq2yagz/image/upload/v1723824322/pdq9gbcco6l8mp1tjtvv.png'},
     isVerified:{type:Boolean,default:false},
     isBlocked:{type:Boolean,default:false}
 },{ timestamps: true })

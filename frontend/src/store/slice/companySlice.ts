@@ -9,9 +9,9 @@ interface data{
 const data = localStorage.getItem('companyData')
 const parsedData = JSON.parse(data as string)
 const initialState :data={
-    _id:parsedData?._id??'',
-    image:parsedData?.image??'',
-    name:parsedData?.name??''
+    _id:parsedData?._id?parsedData?._id:'',
+    image:parsedData?.image?parsedData?.image:'',
+    name:parsedData?.name?parsedData?.name:''
 }
 const companyRegisterDataSlice = createSlice({
     name:'companyRegisterData',

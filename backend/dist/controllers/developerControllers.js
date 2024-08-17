@@ -31,7 +31,24 @@ const Registration = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         let data = yield developerSchema_1.default.findOne({ name: name });
         if (data) {
-            return res.status(400).json({ message: "user already exists" });
+            if (data.isVerified === false) {
+                req.session.developersessionData = {
+                    name: name,
+                    email: email
+                };
+                let otp = registationHelper_1.registerHelper.generateOtp();
+                console.log('otp = ', otp);
+                yield new otpSchema_1.default({
+                    otp: otp,
+                    name: name
+                }).save();
+                registationHelper_1.registerHelper.sendOTP(email, otp).then(() => {
+                    res.status(200).json({ message: "check your mail for otp" });
+                });
+            }
+            else {
+                return res.status(400).json({ message: "user already exists" });
+            }
         }
         else {
             const hashedPassword = yield bcrypt_1.default.hash(password, 10);
@@ -134,7 +151,7 @@ const verifyRegistration = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 }
             }
             else {
-                return res.status(401).json({ message: 'invalid otp' });
+                return res.status(400).json({ message: 'invalid otp' });
             }
         }
     }
@@ -421,8 +438,8 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.FrontEndUrl}/dev/payment-success`,
-            cancel_url: `${process.env.FrontEndUrl}/dev/payment-error`,
+            success_url: `${process.env.FrontEndUrl}dev/payment-success`,
+            cancel_url: `${process.env.FrontEndUrl}dev/payment-error`,
         });
         if (session.id) {
             const duration = subscriptionType.mode === 'Pro' ? 28 : 364;

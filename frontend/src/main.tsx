@@ -7,7 +7,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import App from './router.tsx';
 import { store } from './store/store.ts';
-// import ViewCompany from './pages/developer/viewCompany.tsx';
+// import Quiz from './components/job/QuizPage.tsx';
+// import Companies from './pages/developer/companies.tsx';
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <>

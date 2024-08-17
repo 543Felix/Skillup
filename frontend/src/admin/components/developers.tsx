@@ -25,7 +25,7 @@ const [individualData,setIndividualData] = useState<DeveloperData>({
 })
 const [showData,setShowData] = useState(false)
 useEffect(()=>{
-    Axiosinstance.get('http://localhost:3001/admin/developers').then((res)=>{
+    Axiosinstance.get('/admin/developers').then((res)=>{
         if(res.status === 200){
             setData(res.data.developers)
         }
@@ -34,7 +34,7 @@ useEffect(()=>{
 
 function block(e:React.MouseEvent<HTMLButtonElement, MouseEvent>,id:string){
     e.stopPropagation()
-    Axiosinstance.patch(`http://localhost:3001/admin/developers/block?id=${id}`).
+    Axiosinstance.patch(`/admin/developers/block?id=${id}`).
     then((res)=>{
       if(res.status === 200){
        setData(res.data.developer)
@@ -46,7 +46,7 @@ function block(e:React.MouseEvent<HTMLButtonElement, MouseEvent>,id:string){
 }
 function unBlock(e:React.MouseEvent<HTMLButtonElement, MouseEvent>,id:string){
     e.stopPropagation()
-    Axiosinstance.patch(`http://localhost:3001/admin/developers/unBlock?id=${id}`).
+    Axiosinstance.patch(`/admin/developers/unBlock?id=${id}`).
     then((res)=>{
         if(res.status === 200){
             setData(res.data.developer)
@@ -105,7 +105,7 @@ return(
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-  {data.map((item) => (
+  {data&&data.map((item) => (
     <tr key={item._id} onClick={()=>ShowDeveloperData(item)}>
       <td className="px-6 py-4 whitespace-no-wrap text-sm leading-5">
         <p>{item.name}</p>

@@ -83,7 +83,7 @@ useEffect(() => {
   })
 
   socket.on("newMessage", async (response) => {
-    response.isViewed = true 
+      response.isViewed = true 
     setMessages((messages)=>{
 if (
   (messages[0].chats[0].senderId === response.senderId || messages[0].chats[0].senderId === response.receiverId) &&
@@ -132,6 +132,9 @@ if (
 
    })
    socket.emit('msgViewed',{senderId,receiverId})
+   setUnReadMesCount((prevState)=>{
+    return prevState.filter((item)=>item._id!==receiverId)
+   })
     });
 
   socket.on('msgDeleted',async(data:{mesId:string,date:Date|string})=>{
@@ -163,11 +166,11 @@ if (
         return prevMessages;
       });
     })
-  socket.on('unReadMes',async(sender)=>{
-    setUnReadMesCount((prevState)=>{
-      return prevState.filter((item)=>item.sender!==sender)
-    })
-  })
+  // socket.on('unReadMes',async(sender)=>{
+  //   setUnReadMesCount((prevState)=>{
+  //     return prevState.filter((item)=>item.sender!==sender)
+  //   })
+  // })
 
   
  AxiosInstance.get('/chat/individualMessages',{
@@ -178,7 +181,7 @@ if (
  }).then((res)=>{
   setMessages(res.data.data)
   setUnReadMesCount((prevState)=>{
-    return prevState.filter((item)=>item.sender!==receiverId)
+    return prevState.filter((item)=>item._id!==receiverId)
   })
   socket.emit('msgViewed',{senderId,receiverId})
  })
@@ -186,7 +189,6 @@ if (
   socket.off('msgViewed')
   socket.off("newMessage")
   socket.off("msgDeleted")
-  socket.off("unReadMes")
  }
   },[senderId,receiverId,setMessages,setAllchats,setUnReadMesCount])
 

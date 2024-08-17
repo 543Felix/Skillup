@@ -35,17 +35,19 @@ const VerifyOtp: React.FC<MyComponentProps> = ({ data }) => {
     }
   }, [navigate,role,dev,company]);
 
+  function otpTimer(time = 60){
+    const myInterval = setInterval((): void => {
+      time = time - 1;
+      setTimer(time);
+      if (time === 0) {
+        clearInterval(myInterval);
+        setTimer(0)
+      }
+    }, 1000);
+  }
+
   useEffect(() => {
-    ((time = 60) => {
-      const myInterval = setInterval((): void => {
-        time = time - 1;
-        setTimer(time);
-        if (time === 0) {
-          clearInterval(myInterval);
-          setTimer(0)
-        }
-      }, 1000);
-    })();
+    otpTimer()
   }, []);
 
   const submit = () => {
@@ -84,13 +86,17 @@ const VerifyOtp: React.FC<MyComponentProps> = ({ data }) => {
         
       }
     const resendOtp = ()=>{
+      setLoading(true)
       console.log('entered to the resend otp')
      Axiosinstance.post(`/${role}/resendOtp`)
      .then((res)=>{
       toast.success(res.data.message)
+      otpTimer()
      })
      .catch((res)=>{
       toast.error(res.data)
+     }).finally(()=>{
+      setLoading(false)
      })
     }
   return (

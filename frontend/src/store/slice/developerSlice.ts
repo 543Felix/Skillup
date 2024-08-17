@@ -9,9 +9,9 @@ const data = localStorage.getItem('developerData')
 const parsedData =  await JSON.parse(data as string)
 
 const initialState :data={
-    _id: parsedData?._id ??'',
-    image : parsedData?.image??'',
-    name : parsedData?.name??''
+    _id: parsedData?._id ?parsedData?._id:'',
+    image : parsedData?.image?parsedData?.image:'',
+    name : parsedData?.name?parsedData?.name:''
 }
 
 const developerRegisterDataSlice = createSlice({

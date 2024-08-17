@@ -55,7 +55,7 @@ const DeveloperSchema: Schema<IDeveloper> = new Schema({
     email: { type: String, required: true },
     phoneNo: { type: String },
     password: { type: String, required: true },
-    image: { type: String, default: '' },
+    image: { type: String, default: 'https://res.cloudinary.com/dsnq2yagz/image/upload/v1723824322/pdq9gbcco6l8mp1tjtvv.png' },
     role: { type: String, default: '' },
     description: { type: String, default: '' },
     qualification:{type:String},

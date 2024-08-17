@@ -7,7 +7,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const otpSchema = new mongoose_1.default.Schema({
     otp: { type: Number, required: true },
     name: { type: String, required: true },
-    expireAt: { type: Date, default: Date.now, expires: 60 * 1000 }
-});
+}, { timestamps: true });
+otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 });
 const Otp = mongoose_1.default.model('Otp', otpSchema);
 exports.default = Otp;

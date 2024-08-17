@@ -40,10 +40,10 @@ const initializeSocket = (httpServer:HTTPServer) => {
 
    
 
-      socket.on('message',async(data,callback)=>{
+    socket.on('message',async(data,callback)=>{
       try {
          const {senderId,receiverId,senderModel,receiverModel,content,type} = data
-      new Chat({
+      new Chat({  
         senderId,
         receiverId,
         senderModel,
@@ -54,9 +54,10 @@ const initializeSocket = (httpServer:HTTPServer) => {
     .then((data)=>{
       const receiver = socketUsers.get(receiverId)
       const {_id,content,createdAt,isViewed,type} = data
-      callback({senderId,receiverId,_id,content,createdAt,isViewed,type});
+      socket.to(receiver).emit('unReadMes',{senderId})
       socket.to(receiver).emit('newMessage',{senderId,receiverId,_id,content,createdAt,isViewed,type})
-      socket.to(receiver).emit('unReadMes',senderId)
+       console.log('receiver = ',receiver)
+      callback({senderId,receiverId,_id,content,createdAt,isViewed,type});
     })    
       } catch (error) {
       }
