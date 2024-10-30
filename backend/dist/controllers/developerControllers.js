@@ -422,6 +422,7 @@ const getDevelopers = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 //  Subscription 
 const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log('come to subscription backend');
         const { subscriptionType, devId } = req.body;
         const session = yield stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -441,6 +442,7 @@ const HandleSubscription = (req, res) => __awaiter(void 0, void 0, void 0, funct
             success_url: `${process.env.FrontEndUrl}dev/payment-success`,
             cancel_url: `${process.env.FrontEndUrl}dev/payment-error`,
         });
+        console.log('session_id  = ', session.id);
         if (session.id) {
             const duration = subscriptionType.mode === 'Pro' ? 28 : 364;
             const startDate = new Date();

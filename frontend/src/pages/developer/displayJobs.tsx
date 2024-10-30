@@ -131,8 +131,6 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
   };
   const sortValueSet = (e:React.ChangeEvent<HTMLInputElement>)=>{
      const {name,value} = e.target
-     console.log('name = ',name)
-     console.log('value = ',value)
      setFilter((prevState)=>{
       return{
         ...prevState,
@@ -143,8 +141,9 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
 
   return (
     <>
-      {loader && <Loader />}
-      <div className=" fixed flex flex-col space-y-2  py-5 px-10 rounded-xl bg-opacity-[15%] shadow-custom-black text-white h-auto">
+      {loader? <Loader />:
+      <>
+      <div className="fixed flex flex-col space-y-2  py-5 px-10 rounded-xl bg-opacity-[15%] shadow-custom-black text-white h-auto">
         <h1 className="text-xl font-semibold">Filter by</h1>
         <div className="flex flex-col space-y-1">
           <h1>Qualification</h1>
@@ -214,12 +213,17 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
           </label>
         </div>
       </div>
-      <div className="  space-x-3">
-        <div className="">
+      
+      <div className=" space-x-3">
+        <div className={`pl-[235px] space-y-2`}>
+         
+        <div className=" fixed w-2/4 flex   items-center justify-center">
+          <input type="text" className="w-3/4" />
+          </div>
           { jobs.length > 0 ? (
             <>
-              <div className="flex ">
-                <div className={`pl-[235px]`}>
+              <div className="flex pt-[50px] ">
+                <div >
                   {jobs.length > 0 &&
                     jobs.map(job => (
                       <div
@@ -309,6 +313,10 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
           )}
         </div>
       </div>
+     
+      </>
+      }
+      
     </>
   );
 };

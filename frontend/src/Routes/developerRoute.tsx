@@ -140,11 +140,11 @@ AxiosInstance.interceptors.response.use(
   }, [data, userId]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col items-center  min-h-screen">
       <devcontext.Provider value={{ messages, setMessages, allChats , setAllchats,unreadMesCount,setUnReadMesCount }}>
                        
       <DevHeader notifications={notifications} setNotifications={setNotifications} />
-      <div className="flex flex-grow pt-28 pb-10 px-4 space-x-24">
+      <div className="flex flex-grow  pt-28 pb-10 px-4 space-x-24">
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<Displayjob />} />

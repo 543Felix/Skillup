@@ -28,8 +28,8 @@ const  IndividualDevData  = ()=>{
     return(
        <div className=" p-10 flex flex-col w-full   space-y-4 text-white">
             <div className="flex relative flex-col justify-center items-center bg-[#1a1a1a]  shadow-custom-black py-7 rounded-[15px]">
-                {devData?.resume&&devData?.resume.length>0&&(<button className="bg-violet px-5 py-1 rounded absolute right-4 top-3" onClick={()=>showResume(devData?.resume as string)}>View Resume</button>)}
-            <img className="h-[150px] w-[150px]" src="https://res.cloudinary.com/dsnq2yagz/image/upload/v1720757628/userIcon-removebg-preview_blkbxz_c_crop_w_330_h_330_dahy2o.png" alt="" />
+                {devData?.resume&&(<button className="bg-violet px-5 py-1 rounded absolute right-4 top-3" onClick={()=>showResume(devData?.resume as string)}>View Resume</button>)}
+            <img className="h-[150px] w-[150px]" src={devData?.image} alt="" />
              <h1 className="text-2xl font-semibold">{devData?.name}</h1>
              <span>{devData?.role}</span>
              <div className="flex space-x-3">
@@ -58,6 +58,13 @@ const  IndividualDevData  = ()=>{
             </div>
             <div className="flex flex-col p-4 bg-[#1a1a1a]  shadow-custom-black space-y-1 rounded-[15px] ">
             <label className=" text-2xl font-semibold" htmlFor="skills">Certificates</label>
+            {devData && devData.certificates && devData.certificates.length > 0&&devData?.certificates?.map((item,index)=>(
+                    <div key={index} className='flex space-x-3 items-center space-y-2 '>
+                    <h1 className='font-semibold text-lg'>{item.certificateName}</h1>
+                    <button className='bg-violet px-5 py-1 text-white rounded-[8px]'>View</button>
+                    </div>
+                
+            ))}
             </div>
                 
                

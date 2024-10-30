@@ -446,6 +446,7 @@ const uploadCertificates = async(req:Request,res:Response)=>{
 
 const HandleSubscription = async(req:Request,res:Response)=>{
   try {
+    console.log('come to subscription backend')
      const {subscriptionType,devId} = req.body
    
 const session = await stripe.checkout.sessions.create({
@@ -466,6 +467,7 @@ const session = await stripe.checkout.sessions.create({
   success_url: `${process.env.FrontEndUrl}dev/payment-success`,
   cancel_url: `${process.env.FrontEndUrl}dev/payment-error`,
 }); 
+console.log('session_id  = ',session.id)
 
  if(session.id){
   const duration = subscriptionType.mode==='Pro'?28:364

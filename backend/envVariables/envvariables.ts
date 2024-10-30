@@ -7,10 +7,10 @@ dotenv.config()
 let accessTokenSecretKey = process.env.accessToken_Secret_Key as string
 let refreshTokenSecretKey = process.env.refreshToken_Secret_Key as string
 
- export {
+export {
     senderMail,
     senderMailPassword,
     connectionString,
     accessTokenSecretKey,
     refreshTokenSecretKey
-}
+} 

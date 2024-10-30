@@ -301,6 +301,7 @@ return (
           profileImg={profileImg}
           name={name}
           closeChat={setShowIndiChat}
+         
         />
       </div>
     )}

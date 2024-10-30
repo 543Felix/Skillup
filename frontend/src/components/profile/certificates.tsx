@@ -103,7 +103,6 @@ function closeCard(){
 }
 
 const viewPdf = async(url:string)=>{
-    // const newUrl = await getPublicUrl(url) 
     navigate('/dev/pdfView',{state:{url:url}})
 }
  

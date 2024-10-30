@@ -166,11 +166,7 @@ if (
         return prevMessages;
       });
     })
-  // socket.on('unReadMes',async(sender)=>{
-  //   setUnReadMesCount((prevState)=>{
-  //     return prevState.filter((item)=>item.sender!==sender)
-  //   })
-  // })
+  
 
   
  AxiosInstance.get('/chat/individualMessages',{

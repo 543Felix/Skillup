@@ -10,15 +10,15 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
-import path from 'path'
+// import path from 'path'
 
 
 // Socket
 import { createServer } from 'http';
 import initializeSocket from './Socketio/socketInitial'
 
-const currentWorkingDir = path.resolve();
-const parentDir = path.dirname(currentWorkingDir);
+// const currentWorkingDir = path.resolve();
+// const parentDir = path.dirname(currentWorkingDir);
 
 dotenv.config();
 const app: Application = express();
@@ -39,13 +39,13 @@ app.use(session({
     cookie: { secure: false } 
 }));
     const corsOptions = {
-        origin: [process.env.FrontEndUrl as string],
+        origin: [process.env.FrontEndUrl as string,'http://localhost:5174'],
         credentials: true, 
         crossOriginOpenerPolicy: 'same-origin',
     };
   
   app.use(cors(corsOptions));
-
+    
 
 app.use('/dev', developerRoute);
 app.use('/company', companyRoute);
@@ -56,11 +56,11 @@ app.use('/meeting',meetingRoute)
 
 initializeSocket(httpServer)
 
- app.use(express.static(path.join(__dirname, "../frontend/dist")));
+//  app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-app.get("*", (req, res) => 
-  res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"))
-);
+// app.get("*", (req, res) => 
+//   res.sendFile(path.resolve(__dirname, "../frontend/dist", "index.html"))
+// );
 
 httpServer.listen(port, () => {
     console.log(`server is running on port http://localhost:${port}/`);
