@@ -45,4 +45,5 @@ developerRoute.get('/appliedJobsCount/:devId', developerAuth_1.default, jobContr
 developerRoute.get('/getQuiz/:devId/:jobId', developerAuth_1.default, jobControllers_1.jobController.getQuiz);
 developerRoute.post('/sendProposal/:jobId', developerAuth_1.default, jobControllers_1.jobController.sendProposal);
 developerRoute.get('/getJob/:id', developerAuth_1.default, jobControllers_1.jobController.getIndividualJob);
+developerRoute.get('/jobs', jobControllers_1.jobController.getAllJobs);
 exports.default = developerRoute;

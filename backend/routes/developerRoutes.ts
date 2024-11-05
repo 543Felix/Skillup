@@ -59,5 +59,7 @@ developerRoute.get('/getQuiz/:devId/:jobId',devAuthorization,jobController.getQu
 developerRoute.post('/sendProposal/:jobId',devAuthorization,jobController.sendProposal)
 developerRoute.get('/getJob/:id',devAuthorization,jobController.getIndividualJob)
 
+developerRoute.get('/jobs',jobController.getAllJobs)
+
 
 export default developerRoute

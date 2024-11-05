@@ -5,7 +5,7 @@ import {
   faCircleCheck,
   faCircleXmark,
 } from "@fortawesome/free-regular-svg-icons";
-import { faBookmark } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark,faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import AxiosInstance from "../../../utils/axios";
 import { jobDetails } from "../../../types/interface";
 import { formatDistanceToNow, parseISO } from "date-fns";
@@ -22,7 +22,8 @@ interface Props {
 interface Filter {
   qualification: string[];
   experienceLevel: string[];
-  sort:string
+  sort:string,
+  search:string
 }
 
 interface Obj {
@@ -39,17 +40,28 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
   const [saveOrUnsave, setSaveOrUnsave] = useState(0);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [loader, setLoader] = useState<boolean>(false);
-  
+  const [search,setSearch] = useState<string>('')
  
   const [filter, setFilter] = useState<Filter>({
     qualification: [],
     experienceLevel: [],
-    sort:''
+    sort:'',
+    search:''
   });
 
   const showJobComponent = (id : string)=>{
     navigate(`/dev/job/${id}`)
   };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilter((prev) => ({ ...prev, search }));
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   useEffect(() => {
     const type = jobType === "savedJobs" ? "savedJobs" : "allJobs";
@@ -67,8 +79,11 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
     if(filter.sort.length>0){
       obj.sort = filter.sort
     }
+    if (filter.search.length > 0) {
+      obj.search = filter.search;
+    }
     const query = queryString.stringify(obj, { arrayFormat: "bracket" });
-
+    console.log('query = ',query)
     AxiosInstance.get(`/dev/${type}/${id}?${query}`)
       .then(response => {
         console.log("response of savedJobs = ", response.data);
@@ -217,8 +232,12 @@ const Displayjob: React.FC<Props> = ({ jobType }) => {
       <div className=" space-x-3">
         <div className={`pl-[235px] space-y-2`}>
          
-        <div className=" fixed w-2/4 flex   items-center justify-center">
-          <input type="text" className="w-3/4" />
+        <div className="w-[71%] flex flex-col fixed items-center justify-center">
+        <div className="w-full relative ">
+        <input type="text" placeholder='Search jobs based on the skills..' value={search} onChange={(e)=>setSearch(e.target.value)} className="w-3/4 relative justify-center placeholder:text-black rounded-lg px-10" />
+        </div>
+          <FontAwesomeIcon className="h-5 text-black absolute left-3" icon={faMagnifyingGlass} />
+         
           </div>
           { jobs.length > 0 ? (
             <>

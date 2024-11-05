@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb"
 import Job from "../models/jobsSchema"
-import { Request,Response } from "express"
+import { query, Request,Response } from "express"
 import Developer from "../models/developerSchema"
 import Proposal from "../models/proposalSchema"
 
@@ -112,6 +112,60 @@ if(sort){
    }
    
 }
+
+const getAllJobs =async(req:Request,res:Response)=>{
+   try {
+      const qualification = req.query.qualification as string[];
+      const experienceLevel = req.query.experienceLevel as string[] 
+      const search =  req.query.search as string
+      const sort = req.query.sort as string
+   const match:any = {status:'open'};
+   const Sort:any = {jobTitle:1}
+   
+   if (qualification && qualification.length > 0) {
+     match.qualification = { $in: qualification };
+   }
+   
+   if (experienceLevel && experienceLevel.length > 0) {
+     match.experienceLevel = { $in: experienceLevel };
+   }
+   
+   if (search && search.trim().length > 0) {
+     match.$or = [
+       { jobTitle: { $regex: search, $options: "i" } },
+       { skills: { $elemMatch: { $regex: search, $options: "i" } } }
+     ];
+   }
+   if(sort){
+      Sort.jobTitle = Number(sort)
+   }
+   Job.aggregate([
+      {
+     $match: match
+     },
+     {
+       $lookup: {
+         from: 'companies',
+         localField: 'companyId',
+         foreignField: '_id',
+         as: 'companyDetails'
+       }
+     },{
+        $sort : Sort??1
+     },{
+        $sort:{createdAt:-1}
+     }
+   ],{ collation: { locale: "en", strength: 2 } })
+   .then((data)=>{
+      res.status(200).json({data})
+   })
+   } catch (error) {
+      res.status(500).json({message:'Error occured while fetching data'})
+   }
+ 
+
+}
+
 const saveJob = (req:Request,res:Response)=>{
    try {
       const {id} = req.params
@@ -558,4 +612,5 @@ export const jobController={
    getSubmitedProposal,
    getIndividualJob,
    getAppliedJobsCount,
+   getAllJobs
 } 

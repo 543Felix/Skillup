@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const HomeHeader:React.FC = ()=>{
 
     
     const [showMenu, setShowMenu] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
- 
+    const navigate = useNavigate()
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
@@ -14,17 +14,19 @@ const HomeHeader:React.FC = ()=>{
 return(
     <nav className="fixed top-0 left-0 w-full bg-black border-b-2 border-violet text-white h-16 flex items-center  justify-between px-4 z-10">
     <div className="flex items-center">
-      <img src="/developer/logo.png" alt="Logo" className="h-12" />
+      <img src="/developer/logo.png" alt="Logo" className="h-12" onClick={()=>navigate('/')} />
     </div>
-    <div className="hidden sm:flex  justify-center">
+    {/* <div className="hidden sm:flex  justify-center">
       <ul className="flex space-x-4">
         <li>
          <Link to={'/job'}>Jobs</Link></li>
-        <li>Company</li>
       </ul>
-    </div>
-    <div className="hidden sm:flex justify-end space-x-4">
+    </div> */}
+    <div className="hidden sm:flex justify-end space-x-2">
     <div className="relative">
+    <button onClick={()=>navigate('/job')} className="px-4 py-1 hover:scale-110 transition-transform duration-500">
+    Jobs
+            </button>
             <button onClick={toggleDropdown} className="px-4 py-2 hover:scale-110 transition-transform duration-500">
                 Login
             </button>

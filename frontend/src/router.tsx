@@ -14,6 +14,8 @@ import PageNotFound from "./pages/404"
 import DeveloperRoute from "./Routes/developerRoute"
 import CompanyRoute from "./Routes/companyRoute"
 
+import AllJobs from "./pages/jobs"
+
 
 const App:React.FC = ()=>{
   return(
@@ -23,7 +25,7 @@ const App:React.FC = ()=>{
        <Route  path="/registerAs"  element={<RegisterAs/>}/>
 
        
-
+        <Route path="/job" element={<AllJobs/>} />
       {/* developer */}
       <Route  path="/dev/login"  element={<Login data={'dev'}/>}/>
        <Route path="/dev/register" element={<Register />}/>

@@ -110,6 +110,54 @@ const JobsToDisplayDev = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).json({ message: 'Error occured while fetching data' });
     }
 });
+const getAllJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const qualification = req.query.qualification;
+        const experienceLevel = req.query.experienceLevel;
+        const search = req.query.search;
+        const sort = req.query.sort;
+        const match = { status: 'open' };
+        const Sort = { jobTitle: 1 };
+        if (qualification && qualification.length > 0) {
+            match.qualification = { $in: qualification };
+        }
+        if (experienceLevel && experienceLevel.length > 0) {
+            match.experienceLevel = { $in: experienceLevel };
+        }
+        if (search && search.trim().length > 0) {
+            match.$or = [
+                { jobTitle: { $regex: search, $options: "i" } },
+                { skills: { $elemMatch: { $regex: search, $options: "i" } } }
+            ];
+        }
+        if (sort) {
+            Sort.jobTitle = Number(sort);
+        }
+        jobsSchema_1.default.aggregate([
+            {
+                $match: match
+            },
+            {
+                $lookup: {
+                    from: 'companies',
+                    localField: 'companyId',
+                    foreignField: '_id',
+                    as: 'companyDetails'
+                }
+            }, {
+                $sort: Sort !== null && Sort !== void 0 ? Sort : 1
+            }, {
+                $sort: { createdAt: -1 }
+            }
+        ], { collation: { locale: "en", strength: 2 } })
+            .then((data) => {
+            res.status(200).json({ data });
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error occured while fetching data' });
+    }
+});
 const saveJob = (req, res) => {
     try {
         const { id } = req.params;
@@ -536,4 +584,5 @@ exports.jobController = {
     getSubmitedProposal,
     getIndividualJob,
     getAppliedJobsCount,
+    getAllJobs
 };
